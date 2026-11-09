@@ -1,0 +1,43 @@
+STATIC PROPERTY CHECKS (reference model only; not application runtime tests)
+- product-score and zero-price boundaries: PASS
+- price monotonicity at epsilon .3, 1.2, 3.0: PASS
+- epsilon learning direction and clamp range: PASS
+- final-probability epsilon gradient matches generated outcome model: PASS
+- loyalty learning and clamps: PASS
+- business selection probability normalization: PASS
+- child spawn probability bounds: PASS
+- daily budget never exceeds available funds: PASS
+- need bounds, zero/one edges and urgency monotonicity: PASS
+- mood smoothing bounds and direction: PASS
+- age hazard monotonicity and probability bounds: PASS
+- housing move chance bounds and monotonicity: PASS
+- age-linked funds, loyalty, sensitivity and care direction: PASS
+- craving multipliers and epsilon clamps: PASS
+- meal-time and drink-demand interval boundaries: PASS
+- job selection score bounds and monotonicity: PASS
+- work reliability bounds and directional effects: PASS
+- departure city-reserve transfer balances to zero: PASS
+- daily snapshot seeded hourly substep key reproducibility: PASS
+- negotiation acceptance monotonicity and continuity: PASS
+- two-business unique agent assignment and replay: PASS
+
+30-TURN ONE-BUSINESS CAREFUL-PLAYER REFERENCE FIXTURES (not integrated app tests)
+| Business | Visitors/day | Units | Gross | Tax | Platform fee | Supplies | Min wallet | End wallet |
+| Sticker Shop | 8 | 64 | $128.00 | $8.96 | $10.24 | $36.00 | $94.00 | $166.80 |
+| Candle Studio | 8 | 65 | $195.00 | $13.65 | $15.60 | $54.00 | $91.00 | $202.75 |
+| T-Shirt Printing | 8 | 78 | $468.00 | $32.76 | $37.44 | $126.00 | $82.00 | $353.80 |
+| Soap Maker | 8 | 68 | $272.00 | $19.04 | $21.76 | $72.00 | $88.00 | $247.20 |
+| Lemonade Stand | 6 | 45 | $90.00 | $6.30 | $0.00 | $24.00 | $194.00 | $218.64 |
+| Baked Goods Stand | 6 | 50 | $150.00 | $10.50 | $0.00 | $45.00 | $191.00 | $250.44 |
+| Sneaker Resale | 7 | 54 | $2,160.00 | $151.20 | $172.80 | $1,404.00 | $48.00 | $480.00 |
+| Book Resale | 7 | 44 | $264.00 | $18.48 | $21.12 | $171.60 | $92.20 | $145.00 |
+| Vintage Clothing | 7 | 51 | $510.00 | $35.70 | $40.80 | $338.00 | $82.50 | $182.50 |
+| Toy Resale | 7 | 45 | $360.00 | $25.20 | $28.80 | $239.20 | $86.00 | $156.40 |
+| Tech Accessories | 7 | 51 | $612.00 | $42.84 | $48.96 | $405.60 | $84.40 | $199.00 |
+| Plant Nursery | 5 | 46 | $184.00 | $12.88 | $0.00 | $119.60 | $194.80 | $211.26 |
+| Tutoring | 8 | 59 | $236.00 | $16.52 | $18.88 | $0.00 | $100.00 | $300.60 |
+| Graphic Design Studio | 8 | 60 | $480.00 | $33.60 | $38.40 | $0.00 | $100.00 | $508.00 |
+| Pet Sitting | 6 | 48 | $192.00 | $13.44 | $0.00 | $0.00 | $200.00 | $343.50 |
+| Lawn Care | 6 | 51 | $204.00 | $14.28 | $0.00 | $0.00 | $200.00 | $354.66 |
+| Car Wash | 6 | 48 | $192.00 | $13.44 | $0.00 | $0.00 | $200.00 | $343.50 |
+| Bicycle Repair | 6 | 43 | $258.00 | $18.06 | $0.00 | $0.00 | $200.00 | $404.88 |
