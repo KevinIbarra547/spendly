@@ -1,0 +1,98 @@
+name: Feature Request
+about: Request a new feature or improvement for Spendly
+title: 'feat: [short description]'
+labels: ['enhancement', 'triage']
+assignees: []
+
+---
+
+## 📌 Feature Request
+
+**Description:**
+[Clearly describe the feature you want to add]
+
+---
+
+## ✅ Acceptance Criteria
+
+**A feature is NOT ready for development until ALL acceptance criteria are defined:**
+
+- [ ] Feature has a clear owner (Ethan, Kevin, Cheyenne, or Myles)
+- [ ] Feature is in the SPEC (link to section) OR is a new requirement
+- [ ] All required constants/values are defined
+- [ ] API contract is defined (if backend/frontend communication)
+- [ ] Test plan is defined
+- [ ] Acceptance criteria are measurable and testable
+
+**Acceptance Criteria:**
+- [ ] [Criteria 1]
+- [ ] [Criteria 2]
+- [ ] [Criteria 3]
+
+---
+
+## 📚 SPEC Reference
+
+**SPEC Section:** [Link to SPEC.md section, e.g., "Section 2 - MVP, C1. Wallet"]
+
+**If NOT in SPEC:**
+- [ ] This is a new requirement
+- [ ] Team has approved this addition
+- [ ] SPEC will be updated to include this
+
+---
+
+## 👤 Ownership
+
+**Feature Owner:** [@EthanGitHub / @KevinGitHub / @CheyenneGitHub / @MylesGitHub]
+
+**Backup Reviewer:** [Second team member]
+
+---
+
+## 🎯 Priority & Effort
+
+**Priority:**
+- [ ] 🔴 **Blocker** - Blocks other work, must be done now
+- [ ] 🟡 **High** - Important, should be done soon
+- [ ] 🟢 **Medium** - Nice to have, can wait
+- [ ] 🔵 **Low** - Backlog item
+
+**Estimated Effort:**
+- [ ] ⏱️ **Small** (1-2 days)
+- [ ] ⏳ **Medium** (3-5 days)
+- [ ] 📅 **Large** (1-2 weeks)
+- [ ] 🏗️ **Epic** (2+ weeks, needs breakdown)
+
+---
+
+## 📅 Dependencies
+
+**Depends On:**
+- [ ] [List any issues or PRs that must be completed first]
+
+**Blocked By:**
+- [ ] [List anything blocking this work]
+
+---
+
+## 🧪 Test Plan
+
+**How will we verify this feature works?**
+
+- [ ] Unit tests
+- [ ] Integration tests
+- [ ] Reference model comparison
+- [ ] Manual testing
+- [ ] User acceptance testing
+
+**Test Cases:**
+1. [Test case 1]
+2. [Test case 2]
+3. [Test case 3]
+
+---
+
+## 📝 Additional Context
+
+[Any other information, screenshots, or references]

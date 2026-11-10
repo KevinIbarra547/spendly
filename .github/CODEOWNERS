@@ -1,0 +1,47 @@
+# Code Owners - Spendly Project
+# 
+# This file defines who must review changes to specific parts of the codebase.
+# A PR touching files in these directories requires approval from the listed owners.
+# Format: <path> @owner1 @owner2 ...
+# 
+# IMPORTANT: Replace placeholders with actual GitHub usernames!
+
+# Backend - Ethan owns all backend code
+/src/backend/ @EthanGitHub
+/src/backend/** @EthanGitHub
+
+# Frontend - Kevin owns all frontend code  
+/src/frontend/ @KevinGitHub
+/src/frontend/** @KevinGitHub
+
+# Shared contracts and types - Both Ethan and Kevin must review
+/src/shared/contracts/ @EthanGitHub @KevinGitHub
+/src/shared/contracts/** @EthanGitHub @KevinGitHub
+/src/shared/types/ @EthanGitHub @KevinGitHub
+/src/shared/types/** @EthanGitHub @KevinGitHub
+
+# Assets - Cheyenne owns all art and graphics
+/src/frontend/assets/ @CheyenneGitHub
+/src/frontend/assets/** @CheyenneGitHub
+
+# Tests and Integration - Myles owns CI/CD and testing
+/.github/ @MylesGitHub
+/.github/** @MylesGitHub
+/src/shared/tests/ @MylesGitHub
+/src/shared/tests/** @MylesGitHub
+/tests/ @MylesGitHub
+/tests/** @MylesGitHub
+
+# Documentation - All team members can review
+/docs/ @EthanGitHub @KevinGitHub @CheyenneGitHub @MylesGitHub
+/docs/** @EthanGitHub @KevinGitHub @CheyenneGitHub @MylesGitHub
+
+# Root files - All team members
+package.json @EthanGitHub @KevinGitHub @CheyenneGitHub @MylesGitHub
+tsconfig.json @EthanGitHub @KevinGitHub @CheyenneGitHub @MylesGitHub
+README.md @EthanGitHub @KevinGitHub @CheyenneGitHub @MylesGitHub
+
+# Configuration files
+*.json @EthanGitHub @MylesGitHub
+*.yml @MylesGitHub
+*.yaml @MylesGitHub

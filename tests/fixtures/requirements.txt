@@ -1,0 +1,9 @@
+# Python dependencies for Spendly reference tests
+# These are used by consumer_agents_reference.py
+
+# No external dependencies needed for the reference model
+# It uses only Python standard library
+
+# If you need to add dependencies, add them here
+# Example:
+# pytest==7.4.0

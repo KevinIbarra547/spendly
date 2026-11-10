@@ -1,0 +1,227 @@
+name: CI - Spendly
+
+# This workflow runs on every push and pull request
+# It enforces quality gates before code can be merged
+on:
+  push:
+    branches: [ main, dev ]
+  pull_request:
+    branches: [ main, dev, feat/*, fix/* ]
+
+# Cancel previous runs if new commits are pushed
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # ============================================================================
+  # JOB 1: Linting - Check code style
+  # ============================================================================
+  lint:
+    name: Linting
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run ESLint
+        run: npm run lint
+
+      - name: Run TypeScript type check
+        run: npm run typecheck
+
+  # ============================================================================
+  # JOB 2: Unit Tests - Test individual components
+  # ============================================================================
+  test-unit:
+    name: Unit Tests
+    needs: lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run unit tests
+        run: npm run test:unit
+
+  # ============================================================================
+  # JOB 3: Integration Tests - Test components working together
+  # ============================================================================
+  test-integration:
+    name: Integration Tests
+    needs: test-unit
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_USER: test
+          POSTGRES_PASSWORD: test
+          POSTGRES_DB: spendly_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run integration tests
+        env:
+          DATABASE_URL: postgres://test:test@localhost:5432/spendly_test
+          NODE_ENV: test
+        run: npm run test:integration
+
+  # ============================================================================
+  # JOB 4: Reference Model Tests - Verify against SPEC reference
+  # ============================================================================
+  test-reference:
+    name: Reference Model Tests
+    needs: test-unit
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install Python dependencies
+        run: |
+          pip install -r tests/fixtures/requirements.txt || true
+          # If requirements.txt doesn't exist, just continue
+
+      - name: Run reference tests
+        run: python tests/fixtures/consumer_agents_reference.py
+
+      - name: Compare reference results
+        run: |
+          # Generate current results
+          python tests/fixtures/consumer_agents_reference.py > /tmp/current_results.txt
+          
+          # Compare with expected results
+          diff -u tests/fixtures/CONSUMER_AGENT_REFERENCE_RESULTS.txt /tmp/current_results.txt || {
+            echo "::error::Reference test output differs from expected!"
+            echo "Run 'python tests/fixtures/consumer_agents_reference.py' locally to see the difference"
+            exit 1
+          }
+
+  # ============================================================================
+  # JOB 5: Build - Verify project builds successfully
+  # ============================================================================
+  build:
+    name: Build
+    needs: [test-unit, test-integration, test-reference]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build project
+        run: npm run build
+
+  # ============================================================================
+  # JOB 6: Contract Validation - Ensure all code matches contracts
+  # ============================================================================
+  validate-contracts:
+    name: Contract Validation
+    needs: lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run contract tests
+        run: npm run test:contracts || true
+        # Will fail until contract tests are implemented
+
+  # ============================================================================
+  # JOB 7: Regression Tests - Ensure no breaking changes
+  # ============================================================================
+  test-regression:
+    name: Regression Tests
+    needs: test-unit
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_USER: test
+          POSTGRES_PASSWORD: test
+          POSTGRES_DB: spendly_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run regression tests
+        env:
+          DATABASE_URL: postgres://test:test@localhost:5432/spendly_test
+          NODE_ENV: test
+        run: npm run test:regression || true
+        # Will fail until regression tests are implemented

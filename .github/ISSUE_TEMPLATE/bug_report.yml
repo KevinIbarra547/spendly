@@ -1,0 +1,92 @@
+name: Bug Report
+about: Report a bug or issue in Spendly
+title: 'fix: [short description]'
+labels: ['bug', 'triage']
+assignees: []
+
+---
+
+## 🐛 Bug Report
+
+**Description:**
+[Clearly describe the bug and what happens]
+
+---
+
+## 🔍 Steps to Reproduce
+
+**Reproduction steps:**
+1. [First step]
+2. [Second step]
+3. [Third step]
+... 
+
+**Expected Result:**
+[What should happen]
+
+**Actual Result:**
+[What actually happens]
+
+---
+
+## 📋 Environment
+
+- **Browser:** [Chrome/Firefox/Safari/Edge]
+- **OS:** [Windows/macOS/Linux]
+- **Node.js Version:** [Run `node --version`]
+- **npm Version:** [Run `npm --version`]
+- **Branch:** [main/dev/feat-...]
+- **Commit:** [Commit hash if applicable]
+
+---
+
+## 🎯 Severity
+
+**Severity Level:**
+- [ ] 🔴 **Critical** - Breaks core functionality, blocks all work
+- [ ] 🟠 **High** - Major feature broken, significant impact
+- [ ] 🟡 **Medium** - Minor feature broken, some impact
+- [ ] 🟢 **Low** - Cosmetic issue, minimal impact
+
+---
+
+## 📚 SPEC Reference
+
+**Does this bug violate the SPEC?**
+- [ ] Yes - [Link to SPEC section]
+- [ ] No - This is a new issue not covered by SPEC
+- [ ] Unsure - Need to check SPEC
+
+---
+
+## 🔗 Related
+
+**Related Issues:** [List any related issues]
+**Related PRs:** [List any related PRs]
+
+---
+
+## 🧪 Testing
+
+**How to verify the fix:**
+1. [Step 1]
+2. [Step 2]
+3. [Step 3]
+
+**Test Cases:**
+- [ ] Test case 1
+- [ ] Test case 2
+
+---
+
+## 📝 Additional Context
+
+[Any other information, screenshots, or error logs]
+
+**Error Logs:**
+```
+[Paste any relevant error messages or stack traces here]
+```
+
+**Screenshots:**
+[Drag and drop screenshots here]
