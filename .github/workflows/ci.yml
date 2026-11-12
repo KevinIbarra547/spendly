@@ -1,0 +1,22 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  golden-fixture:
+    name: Golden fixture (consumer agents reference)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Run reference fixture and compare to frozen output
+        run: |
+          python3 tests/fixtures/consumer_agents_reference.py > /tmp/reference-out.txt
+          diff /tmp/reference-out.txt tests/fixtures/CONSUMER_AGENT_REFERENCE_RESULTS.txt
+          echo "Golden fixture output matches the frozen reference."
