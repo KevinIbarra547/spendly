@@ -1,3 +1,6 @@
+## Task
+Closes #<task number>   (required; the loop-check robot fails a PR without it)
+
 ## What changed?
 Explain it in plain language.
 
@@ -26,3 +29,8 @@ Explain how to revert this change and whether a database migration is involved.
 
 ## Known gaps
 List anything not tested or still unresolved.
+
+## Loop checklist
+- [ ] Branch made with /start-task from the latest main
+- [ ] Only files inside the task's scope changed
+- [ ] Protected flows touched: none, or listed here with their tests passing

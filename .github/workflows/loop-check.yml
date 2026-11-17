@@ -1,0 +1,45 @@
+name: Loop check
+
+on:
+  pull_request:
+    types: [opened, edited, synchronize, reopened]
+
+permissions:
+  contents: read
+
+jobs:
+  loop-check:
+    name: Loop check (branch name + task link)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check the PR follows the loop
+        env:
+          BRANCH: ${{ github.head_ref }}
+          BODY: ${{ github.event.pull_request.body }}
+          BASE: ${{ github.base_ref }}
+        run: |
+          fail=0
+          echo "Branch: $BRANCH -> $BASE"
+          case "$BRANCH" in
+            spike/*)
+              echo "::error::spike/ branches are a playground and can never merge. Rebuild the result through a task card."
+              fail=1 ;;
+          esac
+          if ! printf '%s' "$BRANCH" | grep -Eq '^(feat|fix|chore|docs|test)/[0-9]+-[a-z0-9-]+$'; then
+            echo "::error::Branch name must look like feat/12-short-name (types: feat, fix, chore, docs, test). Use /start-task."
+            fail=1
+          fi
+          if ! printf '%s' "$BODY" | grep -Eiq '(closes|fixes|resolves) #[0-9]+'; then
+            echo "::error::The PR description must say 'Closes #<task number>'. No task card = no code."
+            fail=1
+          fi
+          num=$(printf '%s' "$BRANCH" | sed -nE 's#^[a-z]+/([0-9]+)-.*#\1#p')
+          if [ -n "$num" ] && ! printf '%s' "$BODY" | grep -Eiq "(closes|fixes|resolves) #$num([^0-9]|$)"; then
+            echo "::error::The branch is for task #$num but the PR does not say 'Closes #$num'."
+            fail=1
+          fi
+          if [ "$fail" -ne 0 ]; then
+            echo "Loop check failed. See docs/harness/SETUP.md and AGENTS.md (The loop)."
+            exit 1
+          fi
+          echo "Loop check passed."
