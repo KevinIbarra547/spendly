@@ -1,0 +1,21 @@
+#!/bin/sh
+# Spendly loop guard: no pushes to main, no force-pushes (see AGENTS.md "Golden rules").
+zero=0000000000000000000000000000000000000000
+while read -r local_ref local_sha remote_ref remote_sha; do
+  case "$remote_ref" in
+    refs/heads/main|refs/heads/master)
+      echo "BLOCKED: pushing to main is not allowed. Push your task branch and open a PR (/finish-task)." >&2
+      exit 1 ;;
+  esac
+  if [ "$local_sha" = "$zero" ]; then
+    echo "BLOCKED: deleting remote branches from the command line is off. Delete merged branches on GitHub." >&2
+    exit 1
+  fi
+  if [ "$remote_sha" != "$zero" ] && git cat-file -e "$remote_sha" 2>/dev/null; then
+    if ! git merge-base --is-ancestor "$remote_sha" "$local_sha"; then
+      echo "BLOCKED: this push would rewrite history (force-push). Pull/merge instead, or ask Myles." >&2
+      exit 1
+    fi
+  fi
+done
+exit 0

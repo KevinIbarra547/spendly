@@ -1,0 +1,42 @@
+# Who must review changes to each area (SPEC.md "Team and Ownership", Appendix A.29).
+# Later lines win over earlier ones. Nobody approves their own PR: when the owner is the author,
+# another teammate approves (see SPEC.md "Reviewer routing").
+
+# Default: Kevin (repo owner) and Myles (integration)
+*                              @KevinIbarra547 @393460-ai
+
+# Product rules and harness
+/SPEC.md                       @KevinIbarra547 @ethan-chang-2028 @cheyenneminniefee-blip @393460-ai
+/AGENTS.md                     @393460-ai @KevinIbarra547
+/CLAUDE.md                     @393460-ai @KevinIbarra547
+/.agents/                      @393460-ai @KevinIbarra547
+/.claude/                      @393460-ai @KevinIbarra547
+/.github/                      @393460-ai @KevinIbarra547
+/.githooks/                    @393460-ai
+/scripts/                      @393460-ai
+/docs/harness/                 @393460-ai @KevinIbarra547
+/docs/design/                  @KevinIbarra547 @cheyenneminniefee-blip
+
+# Role files: each person approves changes to their own
+/.github/agents/kevin.md       @KevinIbarra547
+/.github/agents/ethan.md       @ethan-chang-2028
+/.github/agents/cheyenne.md    @cheyenneminniefee-blip
+/.github/agents/myles.md       @393460-ai
+
+# Frontend
+/apps/web/                     @KevinIbarra547
+/apps/web/src/screens/         @KevinIbarra547
+/apps/web/src/world/           @cheyenneminniefee-blip
+/apps/web/src/stocks/          @cheyenneminniefee-blip
+/assets/                       @cheyenneminniefee-blip
+
+# Backend and engine
+/packages/engine/              @ethan-chang-2028
+/packages/shared/              @ethan-chang-2028
+/apps/server/                  @ethan-chang-2028
+/db/                           @ethan-chang-2028
+/packages/contracts/           @ethan-chang-2028 @KevinIbarra547 @cheyenneminniefee-blip
+
+# Tests: golden fixtures are protected (engine owner + integration)
+/tests/                        @393460-ai
+/tests/fixtures/               @ethan-chang-2028 @393460-ai

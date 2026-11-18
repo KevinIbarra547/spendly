@@ -147,3 +147,9 @@ vite.config.ts.timestamp-*
 
 # Turbo Repo
 .turbo
+
+# Spendly harness: never commit secrets or personal agent files
+.env
+.env.*
+!.env.example
+CLAUDE.local.md

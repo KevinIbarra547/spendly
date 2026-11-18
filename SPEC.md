@@ -1,10 +1,10 @@
 # Spendly — Product, Technical & Team Operating Specification
 
-**Version:** 2.8.6 — FROZEN implementation baseline (all four owners and their agents build from this exact file)  
-**Prepared:** November 8, 2026 (v2.8.5 audit corrections + approved gpt-6-luna migration + adopted owner decisions; no application runtime is claimed)  
+**Version:** 2.8.7 — current implementation baseline (v2.8.6 frozen baseline + team decisions 18–26, changed through A.24 change control)  
+**Prepared:** November 17, 2026 (v2.8.7 role, World Simulation, Stocks display, harness and hosting decisions; no application runtime is claimed)  
 **Product source of truth:** *Spendly Merged Spec v1*, November 6, 2026; Ethan’s Consumer Agents prompt is a V2.8 design proposal reconciled in Appendix A.26  
-**Team decisions incorporated:** decisions confirmed in the team conversation through November 8, 2026  
-**Repository:** GitHub (repository URL and member usernames to be added by the team)
+**Team decisions incorporated:** decisions confirmed in the team conversation through November 17, 2026  
+**Repository:** https://github.com/KevinIbarra547/spendly — GitHub usernames: Kevin `KevinIbarra547`, Ethan `ethan-chang-2028`, Cheyenne `cheyenneminniefee-blip`, Myles `393460-ai`
 
 > **How to read this document**
 >
@@ -18,9 +18,9 @@
 
 | Person | Role | Owns | Backup |
 |---|---|---|---|
-| **Kevin** | Frontend, UX, design | Frontend screens, design system, Learn content/screens, AI Coach experience, onboarding and player-facing UX | Collaborates on every product area; reviews changes to Kevin-owned areas when he is not the PR author; docs and pitches are shared |
-| **Ethan** | Backend and engine | Backend implementation, simulation math and numbers, database/data transfer, APIs, turn engine, Admin/security | Collaborates on every product area; owns engine and money-rule correctness; reviews backend/engine changes when he is not the PR author |
-| **Cheyenne** | Simulation presentation and graphics | Game graphics, 3D models, characters, visual presentation of the simulation | Collaborates on every product area; reviews art/asset changes when she is not the PR author |
+| **Kevin** | Frontend, UX, design | Frontend screens (except the World Simulation and the Stocks display), design system, Learn content/screens, AI Coach experience, onboarding and player-facing UX | Collaborates on every product area; reviews changes to Kevin-owned areas when he is not the PR author; docs and pitches are shared |
+| **Ethan** | Backend and engine | Backend implementation, simulation math and numbers (including the consumer agents and the stock-market engine and data), database/data transfer, APIs, turn engine, Admin/security | Collaborates on every product area; owns engine and money-rule correctness; reviews backend/engine changes when he is not the PR author |
+| **Cheyenne** | World Simulation, Stocks display and graphics | World Simulation logic (BU6: how the world plays back each day), the Stocks display (S3), game graphics, 3D models, characters | Collaborates on every product area; reviews World Simulation, Stocks display and art/asset changes when he is not the PR author |
 | **Myles** | Research and build integration | Research/fact checks, GitHub build integration, CI workflows, automated test coordination, shared AI-agent instructions, development coordination and keeping the combined project buildable | Does not take ownership of Ethan's engine math/backend or another owner's product area; reviews integration/build changes when he is not the PR author |
 
 **Name note:** The merged plan spells this owner “Miles”; the team confirms the correct team name is **Myles**. Kayden and Nolan are not team members. Spendly has four team members.
@@ -33,9 +33,9 @@ A person cannot approve their own GitHub pull request (PR). If the feature owner
 
 ## Ownership boundaries
 
-- **Ethan owns simulation rules, formulas, money math, backend implementation, data persistence, and API behavior.**
-- **Cheyenne owns simulation presentation, graphics, 3D models, characters, and art assets.** She does not independently change engine formulas.
-- **Kevin owns screens, frontend UX, design system, Learn content/screens, and the AI Coach experience.** Backend persistence and all money calculations remain with Ethan.
+- **Ethan owns simulation rules, formulas, money math, backend implementation, data persistence, and API behavior,** including the consumer agents and the stock-market engine, quotes, candles and trades.
+- **Cheyenne owns the World Simulation (BU6), the Stocks display (S3), graphics, 3D models, characters, and art assets.** His code reads engine results and never decides outcomes, prices or money; he does not independently change engine formulas.
+- **Kevin owns screens (except BU6 and S3), frontend UX, design system, Learn content/screens, and the AI Coach experience.** Backend persistence and all money calculations remain with Ethan.
 - **Myles owns the development integration system:** CI/build workflows, integration-test coordination, shared agent instructions, and task/dependency coordination. He does not become the owner of backend math simply because he helps integrate it.
 - Everyone collaborates. Ownership means the person who is accountable for the final decision in that area, not that teammates are forbidden from contributing.
 
@@ -103,7 +103,7 @@ The four agents must not share a working directory or push to each other's task 
 
 ## Backup compatibility decision
 
-Neon Free is acceptable for local development and disposable preview data only. Production uses Neon Launch (or a later Neon plan that provides at least seven days of point-in-time restore) plus the daily encrypted logical backup described in Appendix A.9. This is a V2.3 deployment baseline; its current price must be checked at account creation and is not hard-coded. A GitHub code revert is not a database restore. See Neon's [history window documentation](https://neon.com/docs/introduction/history-window) and [instant restore documentation](https://neon.com/docs/introduction/branch-restore).
+**v2.8.7 team decision (November 17, 2026):** production stays on Neon Free. Neon Free's 6-hour instant restore covers recent mistakes, and the source's seven-day backup requirement is met by the daily encrypted logical backup in Appendix A.9 (seven daily copies kept in a separate free storage location that Ethan chooses before launch). Moving to Neon Launch later is a billing change, not a migration. This is a V2.3 deployment baseline; its current price must be checked at account creation and is not hard-coded. A GitHub code revert is not a database restore. See Neon's [history window documentation](https://neon.com/docs/introduction/history-window) and [instant restore documentation](https://neon.com/docs/introduction/branch-restore).
 
 # Team Development Workflow and Four AI Agents
 
@@ -136,9 +136,9 @@ When a task is merged, its short-lived branch can be deleted. Start the next tas
 
 | Agent | Human owner | Allowed primary work | Must not do without approval |
 |---|---|---|---|
-| Kevin's agent | Kevin | Frontend screens, design system, Learn UI/content, AI Coach UI/experience, onboarding UI | Change backend money rules, database schema, engine formulas, or Cheyenne's source art |
+| Kevin's agent | Kevin | Frontend screens (not the World Simulation or Stocks display), design system, Learn UI/content, AI Coach UI/experience, onboarding UI | Change backend money rules, database schema, engine formulas, or Cheyenne's source art |
 | Ethan's agent | Ethan | TypeScript backend, APIs, database, turn engine, ledger, money calculations, security and admin logic | Change Kevin's visual design or Cheyenne's art ownership without coordination; let AI write money values into the engine |
-| Cheyenne's agent | Cheyenne | 3D models, characters, graphics, asset presentation and simulation visuals | Change engine formulas, transaction behavior, or backend data rules |
+| Cheyenne's agent | Cheyenne | World Simulation playback logic, Stocks display, 3D models, characters, graphics and asset presentation | Change engine formulas, transaction behavior, or backend data rules |
 | Myles's agent | Myles | CI/build workflows, integration tests, shared `AGENTS.md`/agent instructions, GitHub templates, task coordination and research support | Take over another person's feature or change product rules without that feature owner's approval |
 
 An agent follows the same ownership boundaries as its human. It is a tool working for its owner, not an additional team member with permission to make independent product decisions.
@@ -307,6 +307,8 @@ Spendly/
 
 This is a recommended starting layout, not a claim that these folders already exist. Myles should compare it with the actual repository before creating or moving folders. Do not restructure a working codebase just to match this example.
 
+**v2.8.7:** the harness files that actually exist in the repository (shared `AGENTS.md`, `CLAUDE.md`, role files, folder rule files, skills, git hooks, loop-check workflow and `docs/harness/`) are listed in Appendix A.29. Appendix A.13 remains the canonical layout.
+
 ### Minimum shared `AGENTS.md` rules
 
 Every agent must:
@@ -327,6 +329,9 @@ Every agent must:
 Every PR should include:
 
 ```text
+## Task
+Closes #<task number>   (required; the loop-check robot fails a PR without it)
+
 ## What changed?
 Explain it in plain language.
 
@@ -355,6 +360,11 @@ Explain how to revert this change and whether a database migration is involved.
 
 ## Known gaps
 List anything not tested or still unresolved.
+
+## Loop checklist
+- [ ] Branch made with /start-task from the latest main
+- [ ] Only files inside the task's scope changed
+- [ ] Protected flows touched: none, or listed here with their tests passing
 ```
 
 ---
@@ -671,7 +681,7 @@ The following features are Green because the merged plan places them in MVP. Add
 - Existing catalog `visitors_per_day` slots remain authoritative. The engine selects a distinct unused shopper for each slot from the shared account pool, and no shopper visits more than one of the player's businesses during the same simulated turn.
 - At the default `epsilon=1.20` and initial relationship `0.50`, the individualized purchase probability exactly preserves the existing source buy-probability formula and the Loyal Regular 1.10 multiplier; bounds are enforced by F25–F27.
 - A fulfilled purchase increases that agent/business relationship by 0.02; a valid wanted-but-unfulfilled stock/service-capacity outcome decreases it by 0.02; ordinary price/preference rejection does not penalize relationship. Price-sensitivity learning occurs only for valid purchase/preference outcomes and is clamped to `[0.30,3.00]` with at most 5% movement per simulated day.
-- Visitor assignment and purchase outcomes use the existing deterministic seeded-random infrastructure, persist atomically with the turn, expose only aggregate reason-code counts to the player, and make no AI-provider calls or player-wallet mutations except the ordinary business revenue postings already defined by F13–F15.
+- Visitor assignment and purchase outcomes use the existing deterministic seeded-random infrastructure, persist atomically with the turn, expose to the player only aggregate reason-code counts plus the anonymous per-visit playback list defined in BU6 (never agent IDs, epsilon or relationship scores), and make no AI-provider calls or player-wallet mutations except the ordinary business revenue postings already defined by F13–F15.
 
 **Entities:** Customer profile, ConsumerAgent, ConsumerBusinessMemory, ConsumerVisit, Business, Inventory/supplies, Service capacity, Game turn, TurnResult. **Formulas:** F7, F12, F25–F27. **Dependencies:** Business catalog, deterministic RNG, atomic turn engine, customer explanation bank. **Detailed design:** Appendix A.26.
 
@@ -685,6 +695,24 @@ The following features are Green because the merged plan places them in MVP. Add
 - A player purchase that would take the wallet below zero shows the warning.
 - Supply unit costs, bulk thresholds and discount values follow Appendix A.2.
 **Entities:** Inventory/supplies, Wallet, Ledger transaction, Business. **Formulas:** F1, F12–F15. **Dependencies:** Shop UI, wallet, inventory.
+
+### BU6. World Simulation (Game path playback) — 🟢
+
+**Owner:** Cheyenne. **Support:** Ethan supplies the turn result and `visitPlayback`; Kevin owns the surrounding screens and the Real-life summary. **Description:** Client-side logic that plays back each completed day in the 3D world. It reads the engine's result and never decides who visits, who buys, prices, stock or money.
+**User story:** As a player on the Game path, I watch my day happen: customers arrive, line up, buy or leave, and events show up in the world.
+**Acceptance criteria (v2.8.7 defaults; Cheyenne may refine them through A.24 change control):**
+1. **Input:** `AdvanceTurnResponse.businessResults[].visitPlayback` (one item per visitor: `visitorIndex`, `archetype`, `reasonCode`, `units`) plus `eventId` and the business state. No other source; no API writes.
+2. **Day timeline:** visits play in `visitorIndex` order across morning, midday and evening slots; total playback is at most 20 seconds at 1×, with 1×, 2× and Skip.
+3. **Customer journey:** spawn → walk → queue → decision → buy or leave → exit. The decision shown is the engine's `reasonCode`.
+4. **Reactions:** `bought` leaves with the item; `price_rejected` / `over_budget` shake head and leave; `out_of_stock` shows a sold-out sign; `service_capacity_full` waits then leaves; `business_closed` walks past.
+5. **Line rules:** at most 4 visible customers in line; extra customers wait off to the side. Service businesses show "jobs left today."
+6. **Event reactions:** every business event card maps to one world effect (for example weather, a crowd, a supplier truck); an unmapped card shows a generic banner.
+7. **Shop states:** open/closed, shelf level (full, half, low, empty) from inventory, the second-slot building, and a "bills due" moment on turns 30, 60, 90.
+8. **Layout and camera:** fixed street with business slot positions; the player can pan; reduced-motion users get the summary instead of animation.
+9. **Determinism:** the same turn result always plays back identically; any visual variety is seeded from `turnId` and `visitorIndex` (no unseeded randomness for ordering).
+10. **Fallback:** if playback data is missing or the 3D scene fails to load, show the Real-life summary table.
+**Tests:** state-machine unit tests, event-mapping coverage test, playback-determinism test.
+**Entities:** TurnResult, ConsumerVisit (anonymous view), Business, Random event. **Formulas:** none (no math). **Dependencies:** BU3, BU4, A.18 assets, A.22 `VisitPlaybackItem`.
 
 ## Learn
 
@@ -725,7 +753,7 @@ The following features are Green because the merged plan places them in MVP. Add
 
 ### S1. Simulated market and paper-trading account — 🟢
 
-**Owner:** Ethan. **Description:** Provide five made-up companies plus IDX5 and a separate $1,000 paper-trading account with fractional shares.  
+**Owner:** Ethan (market engine, quotes, candles, trades and data). **Support:** Cheyenne owns the Stocks display (S3). **Description:** Provide five made-up companies plus IDX5 and a separate $1,000 paper-trading account with fractional shares.  
 **User story:** As a player, I can practice buying and selling fractional shares without moving real or game-wallet money.  
 **Acceptance criteria:**
 - The MVP has five made-up companies plus IDX5.
@@ -744,6 +772,20 @@ The following features are Green because the merged plan places them in MVP. Add
 - If the survey goal is investing, Stocks unlocks on day 1.
 - Other unlock shortcuts are not added without a team decision.
 **Entities:** User account, Lesson, Stock/company, Paper-trading account. **Formulas:** None. **Dependencies:** Onboarding, Learn, simulated market.
+
+### S3. Stocks display (real-app style) — 🟢
+
+**Owner:** Cheyenne. **Support:** Ethan supplies the endpoints in A.12/A.22; Kevin owns the shared design system. **Description:** A stock section that looks and works like a real trading app while staying inside the paper-trading rules.
+**Acceptance criteria:**
+- **Watchlist:** symbol, name, price, $ and % change, mini chart, and a "Simulated" badge for the five companies and IDX5.
+- **Stock page:** large price, change today, "as of" quote timestamp, day open, high, low and previous close.
+- **Chart:** line or candlestick view; ranges 1D (30-minute candles), 1W (1-hour candles), 1M and All (daily candles); hover shows time and open/high/low/close; event pins at stock-event times open the Event Card lesson.
+- **Order ticket:** buy or sell by dollars or by shares (fractional), estimated shares or cost, available practice cash, review then confirm; a `QUOTE_CHANGED` response asks the player to confirm again; stale data shows a notice and blocks trading.
+- **Portfolio:** practice cash, holdings value and portfolio value as separate labels (never added to the game wallet); each holding shows shares, average cost, value and gain/loss in $ and %.
+- **Trade history:** every buy and sell with its timestamp.
+- **Notices:** "Prices are simulated, not investment advice" and the required FRED notice.
+- **Not in MVP:** limit or stop orders, short selling, margin, dividends, volume bars (the simulated market has no volume), options and real news.
+**Entities:** Stock/company, StockQuote, StockDailyCandle, Paper-trading account, Stock holding, StockTrade. **Formulas:** F9–F10. **Dependencies:** S1, S2, A.6, A.22 stock contracts.
 
 ## AI Coach
 
@@ -810,6 +852,8 @@ The following features are Green because the merged plan places them in MVP. Add
 **Entities:** Plan/Premium entitlement, User account, Business slot, AI Coach conversation state. **Formulas:** F11 and F21. **Dependencies:** Account, plan display, entitlement checks.
 
 ## Suggested MVP build order
+
+**v2.8.7:** the authoritative plan is the phased build plan with QA gates in `docs/harness/BUILD_PHASES.md` (Phases 0–7). The order below is kept as background.
 
 Build the first playable loop before expanding the learning, market, and support features. The order below is a sequencing recommendation, not a change to MVP scope or ownership:
 
@@ -2403,7 +2447,7 @@ Each user has an isolated market world in MVP; there is no shared/global player 
 
 For each company and five-minute tick, generate a deterministic `epsilon` uniformly in `[-0.0005, +0.0005]` from `(market_seed, ticker, tick_timestamp)` using the SHA-256-to-53-bit method defined for F12, with purpose `market-noise`. `tick_return = clamp(-0.005, +0.005, macro_daily_bias / 288 + epsilon)`. `next_price = max($0.01, previous_price × (1 + tick_return))`, rounded to cents for display only; retain six decimal places internally for deterministic calculations. Apply stock event multipliers after the normal tick update. IDX5 is recalculated from the five company prices after a multiplier; never multiply a derived IDX5 value a second time. FRED data affects market mood only; it does not claim to predict actual markets.
 
-A trade requires a quote no older than 10 minutes. If DFF is older than 7 days or CPIAUCSL is older than 45 days, mark that macro input stale and continue using the last valid observation. If no valid observation exists for a series, use zero contribution for that series and display a stale-data notice. The market continues with deterministic noise; it does not freeze. All market quote history is append-only and stores source timestamps, formula version, and seed version.
+A trade requires a quote no older than 10 minutes. If DFF is older than 7 days or CPIAUCSL is older than 45 days, mark that macro input stale and continue using the last valid observation. If no valid observation exists for a series, use zero contribution for that series and display a stale-data notice. The market continues with deterministic noise; it does not freeze. Quote rows store source timestamps, formula version, and seed version. **v2.8.7 retention:** five-minute `StockQuote` rows are kept for 7 days. A daily job first rolls each completed UTC day into one `StockDailyCandle` row per symbol (open = first tick, high, low, close = last tick) and then deletes five-minute ticks older than 7 days. Daily candles are kept for the life of the account. Chart ranges: 1D (30-minute candles built from ticks), 1W (1-hour candles built from ticks), 1M and All (daily candles; All starts when the player's market world was created). Holdings track average cost: a buy adds its notional to `cost_basis_cents`; a sell removes `cost_basis_cents × shares_sold ÷ shares_held`, rounded half-even to cents.
 
 The exact FRED API is used server-side only. Never expose the API key to the browser. Display the source notice required by the merged plan: “This product uses the FRED® API but is not endorsed or certified by the Federal Reserve Bank of St. Louis.” Official source references: [FRED API](https://fred.stlouisfed.org/docs/api/fred/), [DFF series](https://fred.stlouisfed.org/series/DFF), and [CPIAUCSL series](https://fred.stlouisfed.org/series/CPIAUCSL).
 
@@ -2492,7 +2536,7 @@ Customer lines are selected from a prewritten bank and never generated by AI. In
 - Recovery code: generate 32 cryptographically random bytes, encode for one-time display, store only a secure hash, expire after 90 days, and allow one successful use. `POST /auth/recovery/rotate` requires exactly one of `currentPassword` or an unused `recoveryCode`; the recovery code is consumed in the same transaction that creates the replacement. No email recovery.
 - Account deletion is real deletion. In the same deletion workflow, add a keyed-HMAC account fingerprint to an append-only `AccountDeletionTombstone` restore-control store that is backed up separately from Neon. Before any database backup restore is allowed to serve traffic, reapply every tombstone whose deletion time is newer than the backup snapshot; purge the restored account and linked rows again, verify referential integrity, then unlock traffic. Do not keep usernames or other direct identifiers in the tombstone.
 - Tracking: only actions and page views may be recorded. Write them to `UsageEventRaw`, roll up once daily into `UsageEventDaily`, and delete raw rows older than 30 days. Do not record location, clicks/keystrokes beyond the defined page-view/action event, Coach message content, or unrelated telemetry. Delete account-linked daily aggregates when the account is deleted.
-- Daily scheduled jobs (once per UTC day, idempotent per job and UTC date, result shown on the Admin overview): FRED `DFF`/`CPIAUCSL` fetch at 02:00 UTC; usage rollup into `UsageEventDaily` and deletion of `UsageEventRaw` older than 30 days; deletion of `AdminAuditLog` rows older than 90 days; redaction of `IdempotencyRecord` response bodies older than 90 days; expiry of mock Premium entitlements; cleanup of expired `LessonZeroCompletionToken` rows; deletion of `ErrorEvent` rows older than 30 days; and the encrypted logical database backup with seven retained copies.
+- Daily scheduled jobs (once per UTC day, idempotent per job and UTC date, result shown on the Admin overview): FRED `DFF`/`CPIAUCSL` fetch at 02:00 UTC; usage rollup into `UsageEventDaily` and deletion of `UsageEventRaw` older than 30 days; deletion of `AdminAuditLog` rows older than 90 days; redaction of `IdempotencyRecord` response bodies older than 90 days; expiry of mock Premium entitlements; cleanup of expired `LessonZeroCompletionToken` rows; deletion of `ErrorEvent` rows older than 30 days; StockQuote roll-up into `StockDailyCandle` and deletion of ticks older than 7 days; database size check for the Admin storage alert (warn at 70% of the plan's storage limit); and the encrypted logical database backup with seven retained copies.
 
 These are V2.3 security defaults, not legal advice. Before public release, the team must have the age-eligibility, privacy notice, retention, and account deletion flow reviewed against applicable requirements for a product intended for ages 13+.
 
@@ -2515,7 +2559,7 @@ Demo mode loads a deterministic 90-turn read-only fixture (three 30-turn months)
 
 ### Backups
 
-Development can use Neon Free. Production must meet the source's seven-day backup requirement. V2.3 production baseline: use a Neon plan that provides at least seven days of point-in-time restore, and perform a daily encrypted logical backup to a separately permissioned backup destination with seven complete daily copies retained. Restore tests must be run before launch and quarterly thereafter. Database restore and GitHub code revert are separate procedures. The exact Neon plan price is a deployment cost and is not hard-coded. The source's 7-day backup requirement remains mandatory. **Restore-drill acceptance:** RPO at most 24 hours and RTO at most 4 hours. Steps: (1) restore to a new Neon branch or database; (2) re-apply every `AccountDeletionTombstone` newer than the snapshot; (3) run referential-integrity checks and confirm each wallet's ledger sum equals its balance; (4) record start/end times and results in the release checklist. The drill passes only if all four steps succeed within the RTO.
+Development can use Neon Free. Production must meet the source's seven-day backup requirement. V2.8.7 production baseline (team decision): stay on Neon Free (6-hour instant restore) and meet the seven-day requirement with a daily encrypted logical backup to a separately permissioned backup destination with seven complete daily copies retained. Restore tests must be run before launch and quarterly thereafter. Database restore and GitHub code revert are separate procedures. The exact Neon plan price is a deployment cost and is not hard-coded. The source's 7-day backup requirement remains mandatory. **Restore-drill acceptance:** RPO at most 24 hours and RTO at most 4 hours. Steps: (1) restore to a new Neon branch or database; (2) re-apply every `AccountDeletionTombstone` newer than the snapshot; (3) run referential-integrity checks and confirm each wallet's ledger sum equals its balance; (4) record start/end times and results in the release checklist. The drill passes only if all four steps succeed within the RTO.
 
 ### Error tracking
 
@@ -2580,9 +2624,10 @@ Use UUID primary keys, UTC timestamps, foreign keys, and database constraints. M
 | RewardGrant | `id`, `user_id`, `reward_type`, `reward_key`, `points`, `granted_at`; unique `(user_id,reward_key)` |
 | BadgeAward | `id`, `user_id`, `badge_key`, `awarded_at`; unique `(user_id,badge_key)` |
 | StockAccount | `id`, `user_id` unique, `cash_cents`, `created_at` |
-| StockHolding | `id`, `stock_account_id`, `symbol`, `shares_micros`, `updated_at`; unique `(stock_account_id,symbol)` |
+| StockHolding | `id`, `stock_account_id`, `symbol`, `shares_micros`, `cost_basis_cents` (average-cost method, A.6), `updated_at`; unique `(stock_account_id,symbol)` |
 | MarketWorld | `id`, `user_id` unique, `market_seed`, `simulation_version`, `created_at`, `last_tick_at`; one isolated simulated market world per player |
 | StockQuote | `id`, `market_world_id`, `symbol`, `price_micros`, `quote_at`, `formula_version`, `market_seed_version`, `macro_snapshot_id`; unique per market/symbol/tick |
+| StockDailyCandle | `id`, `market_world_id`, `symbol`, `day` (UTC date), `open_micros`, `high_micros`, `low_micros`, `close_micros`, `formula_version`; unique `(market_world_id,symbol,day)`; kept for the life of the account |
 | StockTrade | `id`, `stock_account_id`, `symbol`, `side`, `shares_micros`, `execution_price_micros`, `notional_cents`, `idempotency_key`, `created_at` |
 | MacroSnapshot | `id`, `series_id`, `observation_date`, `value`, `retrieved_at`, `source_url`, `stale`; unique `(series_id,observation_date)` |
 | EventDeckState | `id`, `user_id`, `tier`, `simulation_version`, `cycle_number`, `used_card_ids`, `updated_at`; unique `(user_id,tier,simulation_version)` |
@@ -2647,9 +2692,11 @@ Additional constraints: `epsilon` and `relationship_score` use PostgreSQL `NUMER
 | POST `/lessons/{id}/attempts` | Submit quiz and receive score/pass/explanations; grants points once | `answers[]`, `contentVersion` | Kevin/Ethan |
 | GET `/lessons/{id}/lab` | Read the lesson's isolated practice-lab instructions and fixture version | none | Kevin |
 | POST `/lessons/{id}/lab/attempts` | Submit the lesson-specific typed `LabAttemptRequest` against the read-only deterministic fixture; stores attempt only | `{ labKey, answers, fixtureVersion, contentVersion }` plus `Idempotency-Key` header | Kevin/Ethan |
-| GET `/stocks/market` | Quotes, source freshness, fictional company data and IDX5 | none | Ethan/Kevin |
-| GET `/stocks/account` | Separate paper cash, holdings and portfolio value | none | Ethan/Kevin |
+| GET `/stocks/market` | Quotes, source freshness, fictional company data and IDX5 | none | Ethan/Cheyenne |
+| GET `/stocks/account` | Separate paper cash, holdings, average cost and portfolio value | none | Ethan/Cheyenne |
 | POST `/stocks/trades` | Buy/sell fractional paper shares only | `symbol`, `side`, `sharesMicros`, `expectedQuoteAt` | Ethan |
+| GET `/stocks/{symbol}/candles` | Chart candles and event pins for one range | `range` query: `1D`, `1W`, `1M`, `ALL` | Ethan/Cheyenne |
+| GET `/stocks/trades` | Paginated paper-trade history, newest first | `cursor`, `limit` query | Ethan/Cheyenne |
 | GET `/event-cards` | Pending/available/completed stock-event lesson cards | none | Kevin |
 | POST `/event-cards/{eventType}/attempts` | Submit stock-event mini-lesson quiz and grant one-time points | `answers[]`, `contentVersion` | Kevin/Ethan |
 | POST `/coach/messages` | Send player-requested Coach question | `text`, `currentScreenKey`, optional `conversationId` | Kevin/Ethan |
@@ -2688,6 +2735,7 @@ The repository does not exist yet. This A.13 tree is the only canonical reposito
 ```text
 spendly/
   AGENTS.md
+  CLAUDE.md
   SPEC.md
   README.md
   package.json
@@ -2695,7 +2743,10 @@ spendly/
   .nvmrc
   .env.example
   apps/
-    web/                  # plain HTML/CSS/TypeScript + three.js 0.147
+    web/                  # HTML + Tailwind CSS + TypeScript + three.js 0.147
+      src/screens/        # Kevin
+      src/world/          # Cheyenne (BU6)
+      src/stocks/         # Cheyenne (S3)
     server/               # Node.js + Express + TypeScript API
   packages/
     engine/               # pure deterministic simulation and money rules
@@ -2722,11 +2773,20 @@ spendly/
       ethan.md
       cheyenne.md
       myles.md
+  .agents/skills/         # shared /start-task, /finish-task, /plan-task
+  .claude/skills/         # Claude Code pointers to .agents/skills
+  .githooks/              # pre-commit / pre-push loop guards
+  scripts/                # setup-hooks.sh
+  docs/
+    harness/              # build phases, protected flows, autonomy, setup, rollout
+    design/               # UI blueprint
 ```
 
 - Runtime: Node.js 26 LTS, pin `.nvmrc` to `26.13.0` as the current LTS baseline checked on 2026-11-08; update only by a planned dependency/security PR. [Official Node.js release record](https://nodejs.org/en/blog/release/v26.13.0).
 - Package manager: npm workspaces with committed `package-lock.json`; no unpinned global dependencies.
-- Frontend: plain HTML, CSS, and TypeScript with three.js exactly `0.147.0` as the source specified; use Vite for development/build only (no React/Vue/Angular unless separately approved).
+- Frontend: HTML, CSS, and TypeScript with three.js exactly `0.147.0` as the source specified; use Vite for development/build only (no React/Vue/Angular unless separately approved). **v2.8.7:** Tailwind CSS is approved, installed through npm and built by Vite (never loaded from a CDN in the app); Lucide icons and the Inter font are approved. The UI design baseline is `docs/design/UI_BLUEPRINT.md`.
+- Portability (v2.8.7): use plain PostgreSQL only (no Neon-only features) and no Replit-only services (Replit Database, Replit Auth, Replit object storage); AI model IDs come from environment configuration, never from code.
+- CI database (v2.8.7): automated tests run against a temporary PostgreSQL service container inside GitHub Actions, never against Neon.
 - Backend: Express and TypeScript. Use `pg` for PostgreSQL access and SQL migrations in `db/migrations`; no ORM required in the first build.
 - Validation: Zod schemas in `packages/contracts`; OpenAPI generated/maintained from those schemas.
 - Testing: Node's built-in test runner or Vitest for pure unit tests (choose Vitest for uniform workspace setup); Supertest for API integration; Playwright for browser end-to-end tests.
@@ -3270,7 +3330,7 @@ export type AdvanceTurnResponse = {
   turnNumber: number; status: "completed"; walletBalanceCents: MoneyCents;
   businessResults: Array<{ businessId: UUID; visitors: number; unitsSoldOrJobs: number;
     grossRevenueCents: MoneyCents; salesTaxCents: MoneyCents; platformFeeCents: MoneyCents;
-    eventId: string | null; why: string[]; consumerSummary: ConsumerSummary }>;
+    eventId: string | null; why: string[]; consumerSummary: ConsumerSummary; visitPlayback: VisitPlaybackItem[] }>;
   stockEvent: null | { eventType: string; cardStatus: "pending" | "available" };
   monthEndReport: null | { reportId: UUID; periodEndTurn: number };
 };
@@ -3303,14 +3363,19 @@ export type PathwaysResponse = { pathways: Array<{ pathway: "money" | "business"
 export type LessonResponse = { lessonId: UUID; title: string; pathway: string; contentVersion: string; sections: Array<{ heading: string; body: string }>; questions: Array<{ questionId: UUID; prompt: string; choices: Array<{ key: "A" | "B" | "C" | "D"; text: string }> }> };
 // LearningLabResponse, LabAttemptRequest and LabAttemptResponse are defined once in A.25.2 and are part of this A.22 contract; contentVersion is a string everywhere.
 export type StocksMarketResponse = { quoteAt: ISODateTime; stale: boolean; companies: Array<{ symbol: string; name: string; sector: string; priceMicros: number; changeBps: number }>; idx5: { pointsMicros: number; changeBps: number }; simulatedMarketNotice: string };
-export type StockAccountResponse = { cashCents: MoneyCents; holdings: Array<{ symbol: string; sharesMicros: number; currentPriceMicros: number; valueCents: MoneyCents }>; holdingsValueCents: MoneyCents; portfolioValueCents: MoneyCents };
+export type StockAccountResponse = { cashCents: MoneyCents; holdings: Array<{ symbol: string; sharesMicros: number; currentPriceMicros: number; valueCents: MoneyCents; costBasisCents: MoneyCents; gainLossCents: MoneyCents; gainLossBps: number }>; holdingsValueCents: MoneyCents; portfolioValueCents: MoneyCents };
+export type CustomerArchetype = "bargain_hunter" | "loyal_regular" | "premium_buyer";
+export type VisitPlaybackItem = { visitorIndex: number; archetype: CustomerArchetype; reasonCode: ConsumerReasonCode; units: number }; // anonymous: no agent IDs, epsilon or relationship values
+export type StockCandle = { start: ISODateTime; openMicros: number; highMicros: number; lowMicros: number; closeMicros: number };
+export type StockCandlesResponse = { symbol: string; range: "1D" | "1W" | "1M" | "ALL"; candleSeconds: number; candles: StockCandle[]; dayStats: { openMicros: number; highMicros: number; lowMicros: number; previousCloseMicros: number | null }; eventPins: Array<{ at: ISODateTime; eventType: string }>; quoteAt: ISODateTime; stale: boolean };
+export type StockTradesResponse = { items: Array<{ tradeId: UUID; symbol: string; side: "buy" | "sell"; sharesMicros: number; executionPriceMicros: number; notionalCents: MoneyCents; createdAt: ISODateTime }>; nextCursor: string | null };
 export type EventCardsResponse = { items: Array<{ eventType: string; status: "pending" | "available" | "completed"; firstSeenAt: ISODateTime; rewardedAt: ISODateTime | null }> };
 export type EventCardContentResponse = { eventType: string; title: string; body: string; lesson: { sections: string[]; questions: Array<{ questionId: UUID; prompt: string; choices: string[] }> }; contentVersion: string };
 export type CoachConversationResponse = { conversationId: UUID; summary: string; messages: Array<{ messageId: UUID; role: "user" | "assistant"; content: string; createdAt: ISODateTime }> };
 export type CoachUsageResponse = { questionsUsedToday: number; dailyCap: 10 | 30; monthlyBudgetStatus: "available" | "exhausted"; resetsAt: ISODateTime };
 export type PlanResponse = { currentPlan: PlanKey; entitlementStatus: "active" | "expired" | "none"; expiresAt: ISODateTime | null; perks: string[]; displayedMonthlyPriceCents: 1000; paymentCollected: false };
 export type DemoSessionResponse = { sessionId: UUID; currentTurn: number; maxTurn: 90; readOnly: true; dashboard: DashboardResponse };
-export type AdminOverviewResponse = { serviceStatus: "healthy" | "degraded"; queueCounts: Record<"pending" | "retrying" | "dead_letter", number>; backup: { lastSuccessAt: ISODateTime | null; retentionDays: 7 }; monthlyAiSpendMicros: number; errors24h: number };
+export type AdminOverviewResponse = { serviceStatus: "healthy" | "degraded"; queueCounts: Record<"pending" | "retrying" | "dead_letter", number>; backup: { lastSuccessAt: ISODateTime | null; retentionDays: 7 }; storage: { usedBytes: number; limitBytes: number; percentUsed: number; warning: boolean }; monthlyAiSpendMicros: number; errors24h: number };
 export type AdminAuditLogItem = { id: UUID; actorUserId: UUID | null; action: string; targetType: string; targetId: UUID | null; reason: string; result: string; createdAt: ISODateTime };
 export type AdminWriteQueueItem = { requestId: UUID; userId: UUID; commandType: string; status: "pending" | "retrying" | "completed" | "dead_letter"; attemptCount: number; nextAttemptAt: ISODateTime | null; createdAt: ISODateTime; completedAt: ISODateTime | null };
 export type AdminUserLookupResponse = { userId: UUID; username: string; role: "admin" | "viewer" | "player"; createdAt: ISODateTime; deletedAt: ISODateTime | null; accountStatus: "active" | "deleted"; plan: PlanKey };
@@ -3341,6 +3406,8 @@ export type AutoRestockSettingsResponse = { enabled: boolean; thresholdUnits: nu
 | `GET /lessons/{id}/lab` | none | `LearningLabResponse` | 200/403/404 |
 | `GET /stocks/market` | none | `StocksMarketResponse` | 200/503 if no fresh quote after backfill |
 | `GET /stocks/account` | none | `StockAccountResponse` | 200 |
+| `GET /stocks/{symbol}/candles` | `range` query | `StockCandlesResponse` | 200/404/503 if no fresh quote after backfill |
+| `GET /stocks/trades` | `cursor`, `limit` query | `StockTradesResponse` | 200 |
 | `GET /event-cards` | none | `EventCardsResponse` | 200 |
 | `GET /event-cards/{eventType}` | none | `EventCardContentResponse` | 200/404 |
 | `GET /coach/conversation` | optional `conversationId` query | `CoachConversationResponse` | 200/404 |
@@ -3682,7 +3749,7 @@ The sources below support general financial and economic concepts. They do not e
 
 # Appendix B — Independent Spec Readiness Audit
 
-**Status: audit complete. v2.8.6 is FROZEN as the implementation baseline.** All four owners and their agents build from this exact `SPEC.md`; no other spec copy is valid.
+**Status: audit complete.** v2.8.6 was frozen on November 8, 2026. **v2.8.7** (November 17, 2026) is the current baseline, changed only through the A.24 change-control protocol (team decisions 18–26). All four owners and their agents build from this exact `SPEC.md`; no other spec copy is valid.
 
 | Version | Weighted spec gap (236 requirements, weight 586) | Critical blocked | Result |
 |---|---:|---:|---|
@@ -3720,6 +3787,15 @@ From now on, the spec changes only through the A.24 change-control protocol: a r
 15. v1.2 adds D19 and F22 to ensure Lesson 0's $100 starting-cash grant is one-time and idempotent, separate from non-cash Learn points/badges.
 16. K4 update (November 8, 2026): the Coach chat model moves from `gpt-4o-mini` to `gpt-6-luna` (approved migration; see A.10). Groq `openai/gpt-oss-20b` remains the basic-task model.
 17. v2.8.6 adopts the audit-recommended owner decisions in A.28 as the implementation baseline and freezes this file for implementation.
+18. November 17, 2026: Cheyenne owns the World Simulation (BU6) and the Stocks display (S3); Ethan keeps the consumer agents and the stock-market engine and data; Kevin keeps all other screens.
+19. The engine adds the anonymous per-visit playback list (`visitPlayback`) to each business day result for the World Simulation.
+20. Stocks gain real-app display features (S3), candles and ranges 1D/1W/1M/All, average cost, trade history and event pins; five-minute quotes are kept 7 days and rolled into daily candles.
+21. Production stays on Neon Free; the seven-day backup rule is met by the daily logical backup. Ethan's Replit account hosts the app; Kevin buys the OpenAI API key; Ethan creates the Neon, Groq and FRED accounts. Keys live only in Replit Secrets, with spending limits on paid services.
+22. Tailwind CSS (npm build), Lucide icons and Inter are approved; the Gemini layout is the UI design baseline after the fixes in `docs/design/UI_BLUEPRINT.md`.
+23. The team harness (Appendix A.29) is the required way to work: task card → `/start-task` → build → `/finish-task` → review → merge.
+24. Agent tools: Kevin and Ethan use Claude Code; Ethan and Cheyenne use Mistral Vibe; Myles uses Codex; Google AI Studio is for thinking and drafts only, never direct repository changes.
+25. Agents move up autonomy levels 1–3 as defined in `docs/harness/AUTONOMY.md`; merging into `main` always needs a human teammate's approval.
+26. The team joins the loop one person at a time (Kevin, then Myles, then Ethan, then Cheyenne) using `docs/harness/ROLLOUT.md`.
 
 ## Version 1.1/v1.2 and V2.0–V2.2 engineering history
 
@@ -3771,6 +3847,7 @@ The implementation decisions D1–D19 and formulas F1–F27 are retained for tra
 | 2026-11-08 | Product-owner-authorized Claude v2.8.3 audit reconciliation | v2.8.4: retired the stale A.14 v2.4.0 golden table and made A.26 §11.2 the single oracle; specified UUIDv5 fixture identities, canonical RNG registry/field order/business order/no-shuffle selection; assigned out-of-turn wallet postings to the next unprocessed turn; added canonical LedgerTag enum and one tax/platform-fee entry per business/turn; prevented sub-cent free stock buys; pinned CPI observations to GameTurn and unified cost rounding; made A.22 the only API-contract source, completed GET response types and missing routes; added CSRF, deletion tombstones, daily usage rollup and 30-day purge; pinned Coach reasoning/moderation/summary behavior; specified 202/GET write-queue contracts; corrected frontend→backend→AI flow; aligned shopper numeric types and schemas; added market-tick backfill and quote-change handling; reconciled Money Report tips, M3 lab branches, survey skip unlock, retention, loan closure, repo/asset authorities and M14 example arithmetic. |
 | 2026-11-08 | Independent Claude re-audit of v2.8.4 | v2.8.5: completed the A.14.1 RNG registry (event outcome/target, market seed, card IDs) and aligned F5, F25, A.4 and A.26 to it (no shuffle); restored the eight POST contracts dropped in v2.8.4; made Coach `conversationId` optional on first message; added login/logout, onboarding draft, error-code catalog, idempotency scope, pagination and deletion-confirmation contracts; added `User.username_changed_at/version` and `SavingsJar.version`; one lab-response definition with string `contentVersion`, lab pass rule and M3 both-branch fields; suggestion-review statuses aligned with A.8; general and second negative tips; MYO unit-cost basis; Inflation Report no-CPI rule; Groq task routing; scheduled-job list; diagram 5.A/5.B/5.J fixes; Stretch M11 example. No fixture value changed. |
 | 2026-11-08 | Kevin (product owner) | v2.8.6: recorded the approved `gpt-6-luna` migration (K4 update); adopted the A.28 owner decisions (skip-survey unlock, Make Your Own name filter, ErrorEvent tracking, restore-drill RPO/RTO, engine-generated demo fixture, `PREMIUM_ALREADY_ACTIVE`); marked the audit complete and froze this file as the single implementation baseline. No fixture value changed. |
+| 2026-11-17 | Kevin (product owner) | v2.8.7 via A.24 change control: Cheyenne owns the World Simulation (BU6) and Stocks display (S3); `visitPlayback`; stock candles, ranges, average cost, trade history, quote retention and `StockDailyCandle`; Neon Free production with daily backups; account owners; Tailwind and UI baseline; harness, autonomy and rollout (Appendix A.29); GitHub usernames recorded. No fixture value changed. |
 
 # Appendix A.27 — Claude v2.8.3 audit reconciliation register
 
@@ -4895,3 +4972,24 @@ The v2.8.4 register in A.27 marked several items as resolved that were not yet c
 | Mock checkout while Premium is active | Kevin | Return 409 `PREMIUM_ALREADY_ACTIVE`; no extension |
 | K4 model change | Team | Approved: `gpt-6-luna` (Team decision 16) |
 
+# Appendix A.29 — v2.8.7 team harness and decisions
+
+**Status:** adopted November 17, 2026 (team decisions 18–26). This appendix lists the harness files and how they enforce the build loop. The harness files themselves are authoritative for process details; this spec stays authoritative for product rules.
+
+| File | Purpose | Loaded by |
+|---|---|---|
+| `AGENTS.md` | Shared core: the loop, golden rules, ownership map, spec map | Every agent (Mistral Vibe and Codex read it directly; Claude Code through `CLAUDE.md`) |
+| `CLAUDE.md` | Imports `AGENTS.md` for Claude Code | Claude Code |
+| `.github/agents/<name>.md` | One role file per person: folders, spec sections, autonomy level | Only that person's agent (one line in their personal agent file) |
+| Folder `AGENTS.md` files | Rules for one owned folder | Any agent working inside that folder |
+| `.agents/skills/` (+ `.claude/skills/` pointers) | `/start-task`, `/finish-task`, `/plan-task` | All three agent tools |
+| `.githooks/` + `scripts/setup-hooks.sh` | Block commits and pushes on `main` and force-pushes | Every computer, every agent |
+| `.github/workflows/loop-check.yml` | Fails a PR without a task link or with a bad branch name; blocks `spike/` branches from merging | GitHub |
+| `.github/workflows/ci.yml` | Golden consumer-agent fixture | GitHub |
+| `.github/CODEOWNERS`, `pull_request_template.md`, `ISSUE_TEMPLATE/` | Owner review routing, PR and task card templates | GitHub |
+| `docs/harness/` | `BUILD_PHASES.md`, `PROTECTED_FLOWS.md`, `AUTONOMY.md`, `SETUP.md`, `ROLLOUT.md` | People and agents, on demand |
+| `docs/design/UI_BLUEPRINT.md` | UI design baseline with required fixes | Kevin, Cheyenne |
+
+**Enforcement layers:** (1) GitHub `main` protection, required checks and code-owner review (configured by the repository owner after this harness merges); (2) the loop-check workflow; (3) git hooks; (4) agent instructions and skills. Layers 1–3 do not depend on any agent following instructions.
+
+**Free playground:** questions, explanations, planning, task-card drafts, Google AI Studio brainstorming and `spike/` branches are always allowed; a `spike/` branch can never merge.
