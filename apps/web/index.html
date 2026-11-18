@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta
+      name="description"
+      content="Spendly is a money-life simulation for students ages 13 and up. Run a business, budget, save, and invest with play money."
+    />
+    <title>Spendly</title>
+  </head>
+  <body data-screen="landing">
+    <a class="skip-link" href="#main">Skip to main content</a>
+
+    <header class="site-header">
+      <div class="container header-inner">
+        <a class="brand" href="/" aria-label="Spendly home">
+          <span class="brand-mark" aria-hidden="true">$</span>
+          <span class="brand-name">Spendly</span>
+        </a>
+        <nav aria-label="Account">
+          <a class="btn btn-ghost" href="/login">Log in</a>
+        </nav>
+      </div>
+    </header>
+
+    <main id="main">
+      <section class="hero" aria-labelledby="hero-title">
+        <div class="container hero-inner">
+          <p class="eyebrow">Play money. Real lessons.</p>
+          <h1 id="hero-title">Learn money by living it.</h1>
+          <p class="lead">
+            Spendly is a money-life simulation for students. Run a small business, build a budget,
+            save toward goals, and practice investing — then see exactly why things turned out the
+            way they did.
+          </p>
+          <div class="hero-actions">
+            <a class="btn btn-primary" href="/signup">Create account</a>
+            <a class="btn btn-secondary" href="/login">I already have an account</a>
+          </div>
+          <ul class="facts" aria-label="Key facts">
+            <li><span class="fact-icon" aria-hidden="true">✓</span> For ages 13 and up</li>
+            <li><span class="fact-icon" aria-hidden="true">✓</span> Nothing uses real money</li>
+            <li><span class="fact-icon" aria-hidden="true">✓</span> Username only — no email needed</li>
+          </ul>
+        </div>
+      </section>
+
+      <section class="areas" aria-labelledby="areas-title">
+        <div class="container">
+          <h2 id="areas-title">Four areas to explore</h2>
+          <ul class="card-grid">
+            <li class="card">
+              <span class="card-icon" aria-hidden="true">🏪</span>
+              <h3>Business</h3>
+              <p>
+                Open an online or physical business, set prices, restock, and watch customers decide
+                whether to buy.
+              </p>
+            </li>
+            <li class="card">
+              <span class="card-icon" aria-hidden="true">📒</span>
+              <h3>Budget</h3>
+              <p>
+                Track every dollar in your wallet, pay bills, take out loans, and fill savings jars.
+              </p>
+            </li>
+            <li class="card">
+              <span class="card-icon" aria-hidden="true">🎓</span>
+              <h3>Learn</h3>
+              <p>
+                Short lessons and quizzes on money, business, and stocks. Earn points and badges as
+                you go.
+              </p>
+            </li>
+            <li class="card">
+              <span class="card-icon" aria-hidden="true">📈</span>
+              <h3>Stocks</h3>
+              <p>
+                Practice investing in a simulated market with a separate paper-trading account.
+              </p>
+            </li>
+          </ul>
+        </div>
+      </section>
+
+      <section class="paths" aria-labelledby="paths-title">
+        <div class="container paths-inner">
+          <div>
+            <h2 id="paths-title">Play your way</h2>
+            <p>
+              Choose the <strong>Game path</strong> for a playful 3D world, or the
+              <strong>Real-life path</strong> for a calm dashboard. The look changes — the rules and
+              numbers stay exactly the same.
+            </p>
+          </div>
+          <div>
+            <h2>An AI Coach on every screen</h2>
+            <p>
+              Ask the Coach when you're stuck. It explains what happened in plain words; the game
+              engine does all the math.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section class="cta" aria-labelledby="cta-title">
+        <div class="container cta-inner">
+          <h2 id="cta-title">Ready to start your first day?</h2>
+          <p>Finish the intro lesson and you'll get $100 in play money to launch your business.</p>
+          <a class="btn btn-primary" href="/signup">Create account</a>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="container">
+        <p>Spendly is an educational simulation. All money in Spendly is play money.</p>
+      </div>
+    </footer>
+
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
