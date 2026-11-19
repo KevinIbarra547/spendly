@@ -1,0 +1,19 @@
+{
+  "name": "@spendly/contracts",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "description": "Zod schemas for the SPEC.md Appendix A.22 API contracts (owner: Ethan).",
+  "main": "src/index.ts",
+  "scripts": {
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "zod": "3.25.76"
+  },
+  "devDependencies": {
+    "typescript": "5.9.3",
+    "vitest": "3.2.4"
+  }
+}
