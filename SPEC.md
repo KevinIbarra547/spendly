@@ -1,9 +1,9 @@
 # Spendly — Product, Technical & Team Operating Specification
 
-**Version:** 2.8.7 — current implementation baseline (v2.8.6 frozen baseline + team decisions 18–26, changed through A.24 change control)  
-**Prepared:** November 17, 2026 (v2.8.7 role, World Simulation, Stocks display, harness and hosting decisions; no application runtime is claimed)  
+**Version:** 2.8.8 — current implementation baseline (v2.8.6 frozen baseline + team decisions 18–27, changed through A.24 change control)  
+**Prepared:** November 19, 2026 (v2.8.8 dev-only turn trace contract; v2.8.7 role, World Simulation, Stocks display, harness and hosting decisions; no application runtime is claimed)  
 **Product source of truth:** *Spendly Merged Spec v1*, November 6, 2026; Ethan’s Consumer Agents prompt is a V2.8 design proposal reconciled in Appendix A.26  
-**Team decisions incorporated:** decisions confirmed in the team conversation through November 17, 2026  
+**Team decisions incorporated:** decisions confirmed in the team conversation through November 19, 2026  
 **Repository:** https://github.com/KevinIbarra547/spendly — GitHub usernames: Kevin `KevinIbarra547`, Ethan `ethan-chang-2028`, Cheyenne `cheyenneminniefee-blip`, Myles `393460-ai`
 
 > **How to read this document**
@@ -681,7 +681,7 @@ The following features are Green because the merged plan places them in MVP. Add
 - Existing catalog `visitors_per_day` slots remain authoritative. The engine selects a distinct unused shopper for each slot from the shared account pool, and no shopper visits more than one of the player's businesses during the same simulated turn.
 - At the default `epsilon=1.20` and initial relationship `0.50`, the individualized purchase probability exactly preserves the existing source buy-probability formula and the Loyal Regular 1.10 multiplier; bounds are enforced by F25–F27.
 - A fulfilled purchase increases that agent/business relationship by 0.02; a valid wanted-but-unfulfilled stock/service-capacity outcome decreases it by 0.02; ordinary price/preference rejection does not penalize relationship. Price-sensitivity learning occurs only for valid purchase/preference outcomes and is clamped to `[0.30,3.00]` with at most 5% movement per simulated day.
-- Visitor assignment and purchase outcomes use the existing deterministic seeded-random infrastructure, persist atomically with the turn, expose to the player only aggregate reason-code counts plus the anonymous per-visit playback list defined in BU6 (never agent IDs, epsilon or relationship scores), and make no AI-provider calls or player-wallet mutations except the ordinary business revenue postings already defined by F13–F15.
+- Visitor assignment and purchase outcomes use the existing deterministic seeded-random infrastructure, persist atomically with the turn, expose to the player only aggregate reason-code counts plus the anonymous per-visit playback list defined in BU6 (never agent IDs, epsilon or relationship scores; the dev-only `TurnTraceResponse` in A.22 is the only exception and is never served to players), and make no AI-provider calls or player-wallet mutations except the ordinary business revenue postings already defined by F13–F15.
 
 **Entities:** Customer profile, ConsumerAgent, ConsumerBusinessMemory, ConsumerVisit, Business, Inventory/supplies, Service capacity, Game turn, TurnResult. **Formulas:** F7, F12, F25–F27. **Dependencies:** Business catalog, deterministic RNG, atomic turn engine, customer explanation bank. **Detailed design:** Appendix A.26.
 
@@ -2682,6 +2682,7 @@ Additional constraints: `epsilon` and `relationship_score` use PostgreSQL `NUMER
 | PUT `/turns/current-plan/actions` | Replace the full ordered action list for the next turn; no money moves yet | `expectedTurn`, `planVersion`, `actions[]` | Ethan |
 | POST `/turns/advance` | Atomically apply staged actions, event, business simulation, bills, interest, Fresh Start and report | `expectedTurn`, `planVersion` | Ethan |
 | GET `/turns/{turnId}/result` | Read day result and server-generated Why explanations | none | Ethan/Kevin |
+| GET `/dev/turns/{turnId}/trace` | **Dev/test only (v2.8.8):** every engine step of one turn for the simulation test page; 404 in production | none | Ethan |
 | POST `/business-slots/second/purchase` | Unlock Free second slot outside the day turn, with wallet warning if needed | `confirm`, `expectedCostCents`, `version` | Ethan |
 | GET `/loans` | Loan list and schedules | none | Ethan |
 | POST `/loans/{id}/payoff-quote` | Calculate current full early-payoff amount without moving money | `expectedVersion` | Ethan |
@@ -2890,6 +2891,7 @@ AI_PRICING_CONFIG_PATH=config/ai-provider-pricing.json
 BACKUP_ENCRYPTION_KEY=
 BACKUP_DESTINATION_URL=
 ADMIN_BOOTSTRAP_TOKEN=
+DEV_TOOLS=0
 ```
 
 Startup validation must fail clearly if mandatory production secrets are absent. No key may be committed, printed in logs, included in a browser bundle, or added to demo fixtures. `OPENAI_MODEL_ID`, `GROQ_MODEL_ID` and provider pricing are deployment-time maintained configuration, not guessed literals. FRED and AI services have test adapters for CI.
@@ -3339,6 +3341,57 @@ export type AdvanceTurnResponse = {
 A `TurnAction` array is a complete replacement of the current plan. Duplicate action types are allowed only where they refer to different resource IDs; only one `set_business_price` per business, one close per business, and one early payoff per loan are accepted. The action array's order is the processing order within the player-action phase. The server validates ownership, all resource versions, slot availability, locked-savings maturity, loan payoff quote, price range, pack-size multiples, bulk discounts, event discount, and overdraft confirmation before accepting the plan. It returns all validation failures together as field errors. A 409 on stale `planVersion` returns the current plan. No money changes until the turn commits.
 
 
+## Dev-only turn trace contract (v2.8.8, team decision 27)
+
+`TurnTraceResponse` shows every engine step of one completed turn so developers can check the simulation on the dev-only simulation test page. It adds **no** rule, formula, money value or game behavior: every value in it is one the engine already computed or stored while running the turn in the documented Turn execution order.
+
+**Where it may be served:** only by `GET /dev/turns/{turnId}/trace`, and only when `NODE_ENV !== "production"` **and** `DEV_TOOLS=1`. In every other case the route returns 404 `NOT_FOUND`, exactly like an unknown route. The demo fixture (A.9 Demo mode) may ship a pre-built trace for its own read-only turns. The trace is never included in any player route, `AdvanceTurnResponse`, `TurnResultResponse`, AI Coach context, analytics or logs, and the player-facing `VisitPlaybackItem` stays anonymous.
+
+**What it may contain:** visitor rows use only the `ConsumerVisit` columns listed below. It never contains `consumer_agent_id`, epsilon, relationship scores, account or user IDs, secrets or request bodies.
+
+**Storage:** the trace is a side output of the same deterministic turn execution. It is not a database table in MVP; a dev server may keep recent traces in process memory keyed by `turnId` and return 404 when it holds none. Producing a trace must not change any turn result, ledger posting, RNG draw or golden-fixture output.
+
+```ts
+export type TurnTraceStepKey =
+  | "player_actions_and_business_visitors" // Turn execution order step 1
+  | "month_end_bills_and_interest"         // step 2 (turns divisible by 30)
+  | "overdraft_fee"                        // step 3
+  | "negative_balance_interest"            // step 4 (turns 7, 14, 21, ...)
+  | "fresh_start"                          // step 5
+  | "money_report";                        // step 6 (turns divisible by 30)
+export type TraceValue = string | number | boolean | null; // money values are integer cents; decimals from NUMERIC columns are decimal strings
+export type TurnTraceLedgerPosting = { tag: LedgerTag; amountCents: MoneyCents; balanceAfterCents: MoneyCents; businessId: UUID | null };
+export type TurnTraceStep = {
+  stepNumber: 1 | 2 | 3 | 4 | 5 | 6;  // equals the Turn execution order step; steps appear once each, in order
+  stepKey: TurnTraceStepKey;
+  skipped: boolean;
+  skipReason: string | null;          // required when skipped, e.g. "not a month-end turn"
+  formulaIds: string[];               // Section 4 IDs used in this step, e.g. ["F12", "F25", "F26"]
+  inputs: Record<string, TraceValue>;
+  outputs: Record<string, TraceValue>;
+  ledgerPostings: TurnTraceLedgerPosting[]; // in posting order; empty when none
+};
+export type TurnTraceVisitor = {
+  visitorIndex: number;
+  archetype: CustomerArchetype;
+  priceProbability: string;  // ConsumerVisit.price_probability, NUMERIC(12,9) as decimal string
+  finalProbability: string;  // ConsumerVisit.final_probability, NUMERIC(12,9) as decimal string
+  randomDraw: string;        // ConsumerVisit.random_draw, NUMERIC(18,17) as decimal string
+  reasonCode: ConsumerReasonCode;
+  units: number;
+};
+export type TurnTraceResponse = {
+  turnId: UUID;
+  turnNumber: number;
+  simulationVersion: string;
+  devOnly: true;
+  walletStartCents: MoneyCents;
+  walletEndCents: MoneyCents;
+  steps: TurnTraceStep[];    // exactly 6 items, stepNumber 1..6 in order
+  businesses: Array<{ businessId: UUID; visitors: TurnTraceVisitor[] }>; // visitors sorted by visitorIndex
+};
+```
+
 ## Complete GET response catalog and remaining mutation contracts (sole normative source)
 
 The following TypeScript response types are required for every GET route in A.12. `Page<T>` is cursor-based and stable within the response snapshot.
@@ -3397,6 +3450,7 @@ export type AutoRestockSettingsResponse = { enabled: boolean; thresholdUnits: nu
 | `GET /businesses` | none | `BusinessesResponse` | 200 |
 | `GET /turns/current-plan` | none | `CurrentTurnPlanResponse` | 200 |
 | `GET /turns/{turnId}/result` | none | `TurnResultResponse` | 200/404 |
+| `GET /dev/turns/{turnId}/trace` | none | `TurnTraceResponse` (dev/test only, see below) | 200; 404 `NOT_FOUND` when dev tools are off or no trace is held for the turn |
 | `GET /money-reports` | cursor/limit | `Page<MoneyReportSummary>` | 200 |
 | `GET /money-reports/{periodEndTurn}` | none | `MoneyReportResponse` | 200/404 |
 | `GET /loans` | none | `LoansResponse` | 200 |
@@ -3749,7 +3803,7 @@ The sources below support general financial and economic concepts. They do not e
 
 # Appendix B — Independent Spec Readiness Audit
 
-**Status: audit complete.** v2.8.6 was frozen on November 8, 2026. **v2.8.7** (November 17, 2026) is the current baseline, changed only through the A.24 change-control protocol (team decisions 18–26). All four owners and their agents build from this exact `SPEC.md`; no other spec copy is valid.
+**Status: audit complete.** v2.8.6 was frozen on November 8, 2026. **v2.8.7** (November 17, 2026) and **v2.8.8** (November 19, 2026) followed; v2.8.8 is the current baseline, changed only through the A.24 change-control protocol (team decisions 18–27). All four owners and their agents build from this exact `SPEC.md`; no other spec copy is valid.
 
 | Version | Weighted spec gap (236 requirements, weight 586) | Critical blocked | Result |
 |---|---:|---:|---|
@@ -3796,6 +3850,7 @@ From now on, the spec changes only through the A.24 change-control protocol: a r
 24. Agent tools: Kevin and Ethan use Claude Code; Ethan and Cheyenne use Mistral Vibe; Myles uses Codex; Google AI Studio is for thinking and drafts only, never direct repository changes.
 25. Agents move up autonomy levels 1–3 as defined in `docs/harness/AUTONOMY.md`; merging into `main` always needs a human teammate's approval.
 26. The team joins the loop one person at a time (Kevin, then Myles, then Ethan, then Cheyenne) using `docs/harness/ROLLOUT.md`.
+27. November 19, 2026 (task #8): a dev-only turn trace (`TurnTraceResponse`, `GET /dev/turns/{turnId}/trace`, A.22) lets developers see every engine step behind a turn result on a simulation test page. It is served only outside production with `DEV_TOOLS=1`, adds no rules or money values, and never reaches players. Approved by the `SPEC.md` code owners on the PR.
 
 ## Version 1.1/v1.2 and V2.0–V2.2 engineering history
 
@@ -3848,6 +3903,7 @@ The implementation decisions D1–D19 and formulas F1–F27 are retained for tra
 | 2026-11-08 | Independent Claude re-audit of v2.8.4 | v2.8.5: completed the A.14.1 RNG registry (event outcome/target, market seed, card IDs) and aligned F5, F25, A.4 and A.26 to it (no shuffle); restored the eight POST contracts dropped in v2.8.4; made Coach `conversationId` optional on first message; added login/logout, onboarding draft, error-code catalog, idempotency scope, pagination and deletion-confirmation contracts; added `User.username_changed_at/version` and `SavingsJar.version`; one lab-response definition with string `contentVersion`, lab pass rule and M3 both-branch fields; suggestion-review statuses aligned with A.8; general and second negative tips; MYO unit-cost basis; Inflation Report no-CPI rule; Groq task routing; scheduled-job list; diagram 5.A/5.B/5.J fixes; Stretch M11 example. No fixture value changed. |
 | 2026-11-08 | Kevin (product owner) | v2.8.6: recorded the approved `gpt-6-luna` migration (K4 update); adopted the A.28 owner decisions (skip-survey unlock, Make Your Own name filter, ErrorEvent tracking, restore-drill RPO/RTO, engine-generated demo fixture, `PREMIUM_ALREADY_ACTIVE`); marked the audit complete and froze this file as the single implementation baseline. No fixture value changed. |
 | 2026-11-17 | Kevin (product owner) | v2.8.7 via A.24 change control: Cheyenne owns the World Simulation (BU6) and Stocks display (S3); `visitPlayback`; stock candles, ranges, average cost, trade history, quote retention and `StockDailyCandle`; Neon Free production with daily backups; account owners; Tailwind and UI baseline; harness, autonomy and rollout (Appendix A.29); GitHub usernames recorded. No fixture value changed. |
+| 2026-11-19 | Ethan | v2.8.8 via A.24 change control (task #8): added the dev-only `TurnTraceResponse` contract and `GET /dev/turns/{turnId}/trace` (A.12, A.22), the `DEV_TOOLS` variable (A.16), the BU4 visibility exception and team decision 27. No formula, money value, schema table or golden-fixture change. |
 
 # Appendix A.27 — Claude v2.8.3 audit reconciliation register
 
