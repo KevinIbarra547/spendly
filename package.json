@@ -7,7 +7,15 @@
   ],
   "scripts": {
     "dev": "npm run dev --workspace apps/web",
-    "build": "npm run build --workspace apps/web",
-    "typecheck": "npm run typecheck --workspace apps/web"
+    "build": "npm run build --workspace apps/web && npm run build:server",
+    "build:server": "tsc --project apps/server/tsconfig.json",
+    "start": "node apps/server/dist/index.js",
+    "typecheck": "npm run typecheck --workspace apps/web && npm run typecheck:server",
+    "typecheck:server": "tsc --project apps/server/tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "@types/express": "^5.0.6",
+    "@types/node": "^26.6.6",
+    "express": "^5.3.0"
   }
 }
