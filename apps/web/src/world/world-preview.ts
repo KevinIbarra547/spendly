@@ -11,7 +11,16 @@ import { renderRealLifeSummaryFallback } from './fallback';
 
 const INLINE = 'box-sizing:border-box;';
 
+/**
+ * Dev/preview-only mount (PR #25 review agreement): the preview renders only
+ * when the page is opened with `?world-preview=1`, so the public landing page
+ * stays byte-for-byte unchanged and nothing fetches the three.js chunk
+ * without an explicit request. Re-homing behind the real Game-path route is
+ * Phase 2 (BU6) work.
+ */
 export function initWorldPreview(): void {
+  const requested = new URLSearchParams(window.location.search).has('world-preview');
+  if (!requested) return;
   const main = document.querySelector('main');
   if (!main) return; // Not a page with a world stage; nothing to render.
 
@@ -76,3 +85,5 @@ async function bootstrapWorldScene(stage: HTMLElement): Promise<void> {
     renderRealLifeSummaryFallback(stage, (error as Error)?.message ?? 'world module failed to load');
   }
 }
+
+initWorldPreview();

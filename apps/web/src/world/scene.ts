@@ -11,7 +11,7 @@
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 
-import { loadManifest, resolveWorldAssets, type WorldAssetKey } from './assets';
+import { loadManifest, resolveWorldAssets } from './assets';
 import { renderRealLifeSummaryFallback } from './fallback';
 
 const GAME_CANVAS_COLOR = 0x101827;
@@ -24,13 +24,16 @@ export function mountWorldScene(stage: HTMLElement, canvas: HTMLCanvasElement): 
   void loadWorldScene(stage, canvas);
 }
 
+/**
+ * Races `promise` against a timeout; the timer is always cleared once the
+ * promise settles, so nothing lingers after startup.
+ */
 function withTimeout<T>(promise: Promise<T>, what: string): Promise<T> {
-  return Promise.race([
-    promise,
-    new Promise<never>((_resolve, reject) => {
-      setTimeout(() => reject(new Error(`Timed out loading ${what}`)), LOAD_TIMEOUT_MS);
-    }),
-  ]);
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const timeout = new Promise<never>((_resolve, reject) => {
+    timer = setTimeout(() => reject(new Error(`Timed out loading ${what}`)), LOAD_TIMEOUT_MS);
+  });
+  return Promise.race([promise, timeout]).finally(() => clearTimeout(timer));
 }
 
 async function loadWorldScene(stage: HTMLElement, canvas: HTMLCanvasElement): Promise<void> {
@@ -78,19 +81,23 @@ async function loadWorldScene(stage: HTMLElement, canvas: HTMLCanvasElement): Pr
     ]);
     scene.add(shop, customer);
 
+    // The placeholder scene is static: render on demand (once after setup,
+    // and again on resize) instead of running a render loop that would
+    // redraw an unchanged frame ~60 times per second on student Chromebooks.
+    const renderFrame = () => renderer.render(scene, camera);
     resize(renderer, camera, canvas);
+    renderFrame();
     if (typeof ResizeObserver !== 'undefined') {
-      new ResizeObserver(() => resize(renderer, camera, canvas)).observe(canvas);
+      const observer = new ResizeObserver(() => {
+        resize(renderer, camera, canvas);
+        renderFrame();
+      });
+      observer.observe(canvas);
     }
-
-    renderer.setAnimationLoop(() => {
-      renderer.render(scene, camera);
-    });
 
     stage.querySelector('[data-loading-note]')?.remove();
     stage.dataset.state = 'ready';
   } catch (error) {
-    renderer.setAnimationLoop(null);
     renderer.dispose();
     renderRealLifeSummaryFallback(stage, (error as Error)?.message ?? 'unknown asset error');
   }
@@ -115,5 +122,3 @@ function loadModel(loader: GLTFLoader, url: string): Promise<{ scene: THREE.Grou
     );
   });
 }
-
-export type { WorldAssetKey };

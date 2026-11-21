@@ -6,17 +6,11 @@ parallel code work (BUILD_PHASES.md phase 1). They are released as
 
 ## Kenney Starter Kit
 
-Placeholder 3D primitives in this repository are written by the team, not
-downloaded. When production assets from the
-[Kenny Starter Kit](https://kenney.nl) are introduced, that license notice
-stays in this folder as required by the source. For reference, Kenney assets
-are distributed under **CC0 1.0 Universal** — the notice is:
-
-> "This startup is licensed under Creative Commons CC0 1.0 Universal. No
-> attribution required, but always appreciated."
-> — kenney.nl asset hub
-
-(The verbatim notice file ships with the first PR that adds a Kenney asset.)
+Kenney assets (from kenney.nl) are distributed under the Creative Commons
+**CC0 1.0 Universal** deed — no attribution required. This repository does not
+yet contain any Kenney files. When the first Kenney Starter Kit asset lands
+here, its verbatim license notice file ships in this folder in the same PR,
+as required by the source.
 
 ## Rules
 

@@ -22,7 +22,7 @@ export function renderRealLifeSummaryFallback(container: HTMLElement, reason?: s
   heading.style.cssText = 'font-size:20px;margin:0;color:#F8FAFC;';
 
   const body = document.createElement('p');
-  body.textContent = 'The 3D world could not load, so the calm Real-life summary is shown instead. The Game path returns automatically once the day data loads.';
+  body.textContent = 'The 3D world could not load, so the calm Real-life summary is shown instead. Refresh the page to try the 3D world view again.';
   body.style.cssText = 'margin:0;color:#C3CEDB;';
 
   const list = document.createElement('ul');

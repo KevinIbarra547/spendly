@@ -1,37 +1,37 @@
 {
   "version": "1.0",
   "note": "Spendly asset manifest (SPEC.md A.18). Logical asset_key values only; frontend code never uses hard-coded OS paths. All assets in this manifest are team-generated placeholders.",
-  "fallbackBehavior": "When an asset with \"fallbackKey\": null fails to load, the scene falls back to the two-dimensional Real-life summary view.",
+  "fallback_behavior": "When an asset has \"fallback_key\": null and fails to load, the scene falls back to the two-dimensional Real-life summary view — that view is the stable fallback for these placeholder assets.",
   "assets": [
     {
       "asset_key": "business-sticker-shop",
       "path": "assets/businesses/business-sticker-shop.glb",
-      "contentType": "model/gltf-binary",
+      "content_type": "model/gltf-binary",
       "license": "CC0 1.0 (Spendly team placeholder, not artist final art)",
       "dimensions": "2.4m wide x 2.8m tall x 2.4m deep, origin at ground-contact center, Y-up, forward +Z",
       "checksum": "sha256-a1c7fd5431dc94c4f320c51fbd5ed92a2154428da19ca556508a2c1f6b6dd268",
       "owner": "cheyenneminniefee-blip",
-      "fallbackKey": null
+      "fallback_key": null
     },
     {
       "asset_key": "customer-bargain-hunter",
       "path": "assets/customers/customer-bargain-hunter.glb",
-      "contentType": "model/gltf-binary",
+      "content_type": "model/gltf-binary",
       "license": "CC0 1.0 (Spendly team placeholder, not artist final art)",
       "dimensions": "0.5m wide x 1.7m tall x 0.4m deep, origin at ground-contact center, Y-up, forward +Z, human reference height 1.7m",
       "checksum": "sha256-2ef7e75c2faf3f77fed11adae74b98f4318c47068503a8bfb0ed080303346dd7",
       "owner": "cheyenneminniefee-blip",
-      "fallbackKey": null
+      "fallback_key": null
     },
     {
       "asset_key": "event-social-buzz",
       "path": "assets/events/event-social-buzz.svg",
-      "contentType": "image/svg+xml",
+      "content_type": "image/svg+xml",
       "license": "CC0 1.0 (Spendly team placeholder, not artist final art)",
       "dimensions": "64x64 viewbox, styled per A.18 Game-path palette",
       "checksum": "sha256-c8a2e8329db84db5a25ea05f7f704854033a8942b4857f1c429981c630f29bb6",
       "owner": "cheyenneminniefee-blip",
-      "fallbackKey": null
+      "fallback_key": null
     }
   ]
 }
