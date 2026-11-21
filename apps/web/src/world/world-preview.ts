@@ -1,63 +1,23 @@
 /**
  * World preview section, Phase 1 (SPEC.md A.18).
  *
- * Appends the placeholder Game-path stage and starts the scene. Kept
- * self-contained: the world module owns its own markup and inline styling
- * until the shared design system grows Game-path tokens, so no file outside
- * the world folder is touched beyond the single import in main.ts.
+ * Public API for the landing/onboarding screens' owner (Kevin, PR #25 review):
+ * - `mountWorld(container)` — mounts the preview stage into any container.
+ *   Phase 2 will call this from the Game/Real-life path picker or Lesson 0.
+ * - `initWorldPreview()` — convenience attach into the page's <main> element
+ *   (no-op when there is none).
+ *
+ * The module never mounts itself: consumers call the mount explicitly, so
+ * bundling this module costs nothing until a screen decides to mount it.
  */
 
 import { renderRealLifeSummaryFallback } from './fallback';
 
 const INLINE = 'box-sizing:border-box;';
 
-//#region Mount policy (PR #25 review agreement)
-
-/**
- * The preview mounts only through an explicit visitor action:
- * - click of the landing-page "See the 3D world" button
- *   (`#world-preview-button`, added with the apps/web owner's OK — the
- *   button-review sign-off in the PR is the record), or
- * - the `?world-preview=1` URL flag for direct links and review.
- *
- * Nothing is fetched until a mount actually happens: the landing page stays
- * byte-for-byte unchanged and the three.js chunk is never downloaded without
- * it. The real Game-path navigation (Phase 2, BU6) replaces this opt-in.
- */
-
-let mounted = false;
-/** True when the preview was requested through the landing-page button. */
-let mountedByButton = false;
-
-/** Loads the preview when the page carries the `?world-preview=1` flag. */
-function initWorldPreviewFromUrlFlag(): void {
-  if (new URLSearchParams(window.location.search).has('world-preview')) {
-    initWorldPreview();
-  }
-}
-
-/** Loads the preview when the visitor presses the landing-page button. */
-function initWorldPreviewFromButton(): void {
-  const button = document.getElementById('world-preview-button');
-  if (button instanceof HTMLButtonElement) {
-    button.addEventListener('click', () => {
-      button.disabled = true;
-      mountedByButton = true;
-      initWorldPreview();
-    }, { once: true });
-  }
-}
-
-initWorldPreviewFromUrlFlag();
-initWorldPreviewFromButton();
-
-//#endregion
-
-export function initWorldPreview(): void {
-  if (mounted) return; // Guard against a double mount (button + flag).
-  const main = document.querySelector('main');
-  if (!main) return; // Not a page with a world stage; nothing to render.
-  mounted = true;
+export function mountWorld(container: HTMLElement): void {
+  if (mountedStages.has(container)) return; // Guard against a double mount.
+  mountedStages.add(container);
 
   const section = document.createElement('section');
   section.className = 'world-preview';
@@ -101,19 +61,18 @@ export function initWorldPreview(): void {
   inner.append(title, blurb, stage);
   section.append(inner);
 
-  main.append(section);
-
-  // When triggered by the button, bring the preview into view.
-  if (mountedByButton) {
-    try {
-      section.scrollIntoView({ behavior: 'smooth', block: 'end' });
-    } catch {
-      // scrollIntoView not implemented — the section is on the page anyway.
-    }
-  }
-
+  container.append(section);
   void bootstrapWorldScene(stage);
 }
+
+/** Convenience attach into the page's <main>; no-op when there is none. */
+export function initWorldPreview(): void {
+  const main = document.querySelector('main');
+  if (main) mountWorld(main);
+}
+
+/** Containers that already hold a mounted world preview. */
+const mountedStages = new Set<HTMLElement>();
 
 /**
  * Loads the scene (and, through it, `assets.ts` and the three.js loaders)
