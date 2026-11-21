@@ -47,6 +47,7 @@ Every ledger entry carries a tag. Stock trades never change the wallet.
 # on any wallet debit (including setup and second-slot debits outside a turn)
 if balance_before >= 0 and balance_after < 0:
     pending_overdraft_crossing = 1
+    pending_crossing_effective_turn = effective_turn_number
 
 # at the overdraft-fee stage of effective_turn_number
 if pending_overdraft_crossing == 1 and last_overdraft_fee_week != week(effective_turn_number):
@@ -61,7 +62,8 @@ At most one fee per seven-turn week. Ending at exactly $0 does not set the flag;
 
 | Variable | Meaning | Value / unit |
 |---|---|---|
-| `pending_overdraft_crossing` | Pending overdraft crossing flag | 0 or 1 |
+| `pending_overdraft_crossing` | Pending overdraft crossing flag (`Wallet.pending_overdraft_crossing`) | 0 or 1 |
+| `pending_crossing_effective_turn` | Effective turn of the pending crossing (`Wallet.pending_crossing_effective_turn`) | turn |
 | `balance_before`, `balance_after` | Balance before / after the debit | ¢ |
 | `effective_turn_number` | Effective turn of the posting | turn |
 | `last_overdraft_fee_week` | Week of the last fee charged | week |
@@ -71,15 +73,15 @@ At most one fee per seven-turn week. Ending at exactly $0 does not set the flag;
 
 ```
 r_week = r_annual / 52
-interest_charge = round(-W_t * r_week)      # on turns t = 7, 14, 21, … when W_t < 0; posted as a wallet debit
+interest_charge = round(abs(end_of_turn_negative_balance) * r_week)   # on turns 7, 14, 21, … when W_end < 0; posted as a wallet debit
 ```
 
-Test case: `W_7 = -$100` gives `interest_charge = $0.23`.
+Test case: an end-of-turn balance of −$100 at turn 7 gives `interest_charge = $0.23`.
 
 | Variable | Meaning | Value / unit |
 |---|---|---|
 | `interest_charge` | Interest charge | ¢ |
-| `W_t` | End-of-turn negative balance | ¢ |
+| `W_end` / `end_of_turn_negative_balance` | End-of-turn balance (charged only when negative) | ¢ |
 | `r_annual` | Annual negative-balance rate | 0.12 (12%) |
 | `r_week` | Weekly rate | 0.12 / 52 |
 
@@ -189,10 +191,10 @@ portfolio_value = sum(holding_value for each holding)
 
 ```
 notional_cents_exact = shares_micros * execution_price_micros / 10^10    # requires notional_cents_exact >= 1.00
-C_buy  = ceil(notional_cents_exact)          # a buy never rounds down
-C_sell = floor(notional_cents_exact)         # a sale never rounds up
-paper_account_cash_after = paper_account_cash_before - C_buy + C_sell
-W_after = W_before                           # stock trades never touch the wallet
+purchase_cost_cents = ceil(notional_cents_exact)     # a buy never rounds down
+sale_proceeds_cents = floor(notional_cents_exact)    # a sale never rounds up
+paper_account_cash_after = paper_account_cash_before - purchase_cost_cents + sale_proceeds_cents
+wallet_after_stock_trade = wallet_before_stock_trade # stock trades never touch the wallet
 ```
 
 | Variable | Meaning | Value / unit |
@@ -200,9 +202,9 @@ W_after = W_before                           # stock trades never touch the wall
 | `shares_micros` | Shares in micro-units | |
 | `execution_price_micros` | Execution price in micro-units | |
 | `notional_cents_exact` | Exact notional | ¢ |
-| C_buy, C_sell | Purchase cost / sale proceeds | ¢ |
+| `purchase_cost_cents`, `sale_proceeds_cents` | Purchase cost / sale proceeds | ¢ |
 | `paper_account_cash` | Paper-account cash | Starts at $1,000 |
-| W | Game wallet | ¢ |
+| `wallet_before_stock_trade`, `wallet_after_stock_trade` | Game wallet before / after a paper trade | ¢ (always equal) |
 
 ### F11. Daily AI Coach question cap — MVP · Ethan
 
@@ -278,38 +280,43 @@ sales_tax_expense[b] = round(0.07 * taxable_gross_sales[b])
 ### F15. Supply costs, operating costs, COGS, and business profit — MVP · Ethan
 
 ```
-inflation_adjusted_unit_cost[0] = cents(default_template_price * base_type_cost_ratio)
-inflation_adjusted_unit_cost[m] = round(inflation_adjusted_unit_cost[m-1] * (1 + pi_m))
+base_unit_cost               = cents(default_template_price * base_type_cost_ratio)
+inflation_adjusted_unit_cost = round(previous_month_unit_cost * (1 + newly_observed_monthly_CPI_change))
+                               # only a newly available CPI observation is applied; change clamped to ±2%
 
-X         = units_ordered * c                       # restock order subtotal
-phi       = 0.90 if Supplier Discount fired this turn else 1.00
-D_restock = round(X * (1 - delta) * phi)
+restock_order_subtotal = units_ordered * current_unit_cost
+supplier_event_factor  = 0.90 if Supplier Discount fired this turn else 1.00
+restock_cash_debit     = round(restock_order_subtotal * (1 - eligible_bulk_discount) * supplier_event_factor)
 
-COGS   = sum(q_lot * c_lot for each lot consumed)   # oldest lots first (FIFO)
-F_plat = round(0.08 * R_online)                     # one entry per business per turn
-B_phys = 1800¢                                      # per active physical business on turns 30, 60, 90, …
-E_emp  = 0
+COGS = sum(units_sold_from_each_lot * that_lot.unit_cost_cents)    # oldest lots first (FIFO)
+online_platform_fee[b] = round(gross_online_sales[b] * 0.08)        # one entry per business per turn
+physical_monthly_bill  = 1800¢             # per active physical business on turns 30, 60, 90, …
+employee_cost          = 0¢                # MVP
 
-business_contribution = R - T - COGS - F_plat - B_phys - E_emp
+business_contribution = gross_sales - sales_tax - COGS - online_platform_fee - due_physical_monthly_bill - employee_cost
 ```
 
-The wallet is debited when a starter or restock order is bought.
+The wallet is debited when a starter or restock order is bought. COGS is recognized on sale and never debits the wallet a second time.
 
 | Variable | Meaning | Value / unit |
 |---|---|---|
 | `default_template_price` | Default template price | $ |
-| `base_type_cost_ratio` | Base-type cost ratio | |
-| `inflation_adjusted_unit_cost` | Unit cost in month m | ¢/unit |
-| pi_m | Newly observed monthly CPI change | fraction |
+| `base_type_cost_ratio` | Base-type cost ratio | Make 30%; Resell 65%; Service 0% (Big Build 35%, Stretch) |
+| `base_unit_cost` | Base supply cost per stock unit | ¢/unit |
+| `inflation_adjusted_unit_cost` | Unit cost this month | ¢/unit |
+| `previous_month_unit_cost`, `current_unit_cost` | Last month's / current unit cost | ¢/unit |
+| `newly_observed_monthly_CPI_change` | Newly observed monthly CPI change | fraction, clamped to ±2% |
 | `units_ordered` | Units ordered | units |
-| X | Restock order subtotal | ¢ |
-| delta | Eligible bulk discount | 0 below 25; 5% for 25–99; 10% for 100+ |
-| phi | Supplier event factor | 0.90 or 1.00 |
-| D_restock | Restock cash debit | ¢ |
-| q_lot, c_lot | Units sold from a lot and that lot's unit cost | |
-| F_plat | Online platform fee | 8% of online sales |
-| B_phys | Physical monthly bill | 1800¢ |
-| E_emp | Employee cost | 0 in MVP |
+| `restock_order_subtotal` | Restock order subtotal | ¢ |
+| `eligible_bulk_discount` | Eligible bulk discount | 0 below 25; 5% for 25–99; 10% for 100+ |
+| `supplier_event_factor` | Supplier event factor | 0.90 or 1.00 |
+| `restock_cash_debit` | Restock cash debit | ¢ |
+| `units_sold_from_each_lot`, `unit_cost_cents` | Units sold from a lot and that lot's unit cost | |
+| `COGS` | Cost of units actually sold | ¢; zero for Service |
+| `gross_online_sales`, `online_platform_fee` | Online gross sales / platform fee | 8% of online sales |
+| `physical_monthly_bill` | Combined rent and utilities | 1800¢ per active physical business |
+| `employee_cost` | Employee cost | 0 in MVP |
+| `gross_sales`, `sales_tax` | Gross sales / sales tax (F13, F14) | ¢ |
 | `business_contribution` | Business contribution | ¢ |
 
 ### F16. Break-even units and contribution margin — Stretch · Ethan
@@ -428,23 +435,27 @@ else:
 ### F23. Loan amortization, monthly payment, and early payoff — MVP · Ethan
 
 ```
-monthly_rate      = APR / 12
-scheduled_payment = round(P * monthly_rate / (1 - (1 + monthly_rate) ^ (-term_months)))
-I_k               = round(P_k * monthly_rate)
-principal_k       = scheduled_payment - I_k
-P_k+1             = P_k - (scheduled_payment - I_k)
-A_final           = P_k + I_k                # last installment
+monthly_rate        = APR / 12
+scheduled_payment   = round(principal * monthly_rate / (1 - (1 + monthly_rate) ^ (-term_months)))
+monthly_interest    = round(opening_principal * monthly_rate)
+principal_component = scheduled_payment - monthly_interest
+closing_principal   = opening_principal - principal_component
+final_payment       = opening_principal + monthly_interest     # if this is the last installment
 ```
+
+Baselines (SPEC.md F23): personal loan $50, 12% APR, 6 months → $8.63/month; business loan $100, 8% APR, 6 months → $17.06/month.
 
 | Variable | Meaning | Value / unit |
 |---|---|---|
-| APR | Annual percentage rate | Appendix A.3 |
-| `monthly_rate` | Monthly rate | |
-| P | Original principal | ¢ |
-| `term_months` | Term in months | months |
-| `scheduled_payment` | Scheduled payment | ¢ |
-| P_k | Opening principal in month k | ¢ |
-| I_k | Monthly interest | ¢ |
+| `APR` | Annual percentage rate | Personal 0.12; business 0.08 (Appendix A.3) |
+| `monthly_rate` | Monthly rate | `APR / 12` |
+| `principal` | Original loan amount | Personal $50; business $100 |
+| `term_months` | Number of installments | 6 |
+| `scheduled_payment` | Fixed monthly installment | Personal $8.63; business $17.06 |
+| `opening_principal`, `closing_principal` | Principal at start / end of the month | ¢ |
+| `monthly_interest` | Interest component | ¢ |
+| `principal_component` | Principal paid this month | ¢ |
+| `final_payment` | Last installment (clears principal to zero) | ¢ |
 
 ### F24. Savings-jar interest and maturity — MVP · Ethan
 
@@ -489,21 +500,23 @@ constraints: unique(t, b, i), unique(t, a)
 ### F26. Individual shopper purchase probability — MVP · Ethan
 
 ```
-P_src   = clamp(1 - (p / p_max) ^ 2, 0, 1)
-P_price = P_src ^ (epsilon / 1.20)
-M_type  = 1.10 if Loyal Regular else 1.00
-M_rel   = 0.90 + 0.20 * relationship_score
-P_buy   = clamp(P_price * M_type * M_rel, 0, 1)
-expected_demand = sum(P_buy_i for each visitor i)
+P_source = clamp(1 - (p / p_max) ^ 2, 0, 1)
+P_price  = P_source ^ (epsilon / 1.20)
+M_type   = 1.10 if archetype == LoyalRegular else 1.00
+M_rel    = 0.90 + 0.20 * relationship_score
+P_buy    = clamp(P_price * M_type * M_rel, 0, 1)
+expected_demand = sum(P_buy for assigned visitor opportunities)
 ```
+
+If `p_max <= 0`, the turn fails with a catalog/configuration error before dividing.
 
 | Variable | Meaning | Value / unit |
 |---|---|---|
-| p, p_max | Price and archetype maximum after scale | ¢ |
+| `p`, `p_max` | Price and archetype maximum after scale | ¢ |
 | `epsilon` | Price-sensitivity exponent | [0.30, 3.00], default 1.20 |
 | `relationship_score` | Relationship score | [0, 1], initial 0.50 |
-| M_type, M_rel | Archetype and relationship modifiers | |
-| P_src, P_price, P_buy | Source, individualized and final buy probability | [0, 1] |
+| `M_type`, `M_rel` | Archetype and relationship modifiers | |
+| `P_source`, `P_price`, `P_buy` | Source, individualized and final buy probability | [0, 1] |
 | `expected_demand` | Expected demand | |
 
 ### F27. Shopper relationship and price-sensitivity learning — MVP · Ethan
@@ -513,25 +526,29 @@ experience_signal = +1     # fulfilled purchase
 experience_signal = -1     # valid intent not fulfilled because stock or service capacity ran out
 experience_signal =  0     # ordinary price/preference rejection
 
-relationship_score_next = clamp(relationship_score + 0.02 * experience_signal, 0, 1)
+relationship_next = clamp(relationship + 0.02 * experience_signal, 0, 1)
 
-M     = M_type * M_rel
-P_raw = M * P_price
-P_buy = clamp(P_raw, 0, 1)
+M         = M_type * M_relationship
+P_buy_raw = M * P_price
+P_buy     = clamp(P_buy_raw, 0, 1)
 
-dP_buy_d_epsilon = M * (P_price / 1.20) * ln(P_src)    # only when 0 < P_src < 1 and 0 < P_raw < 1; otherwise 0
+dP_buy/d_epsilon = M * (P_price / 1.20) * ln(P_source)   # only when 0 < P_source < 1 and 0 < P_buy_raw < 1; otherwise 0
 
-epsilon_raw  = epsilon - 0.05 * (P_buy - observed_buy) * dP_buy_d_epsilon
-epsilon_step = clamp(epsilon_raw, 0.95 * epsilon, 1.05 * epsilon)
-epsilon_next = clamp(epsilon_step, 0.30, 3.00)
+raw_epsilon_next = epsilon - 0.05 * (P_buy - observed_buy) * dP_buy/d_epsilon
+step_limited     = clamp(raw_epsilon_next, epsilon * 0.95, epsilon * 1.05)
+epsilon_next     = clamp(step_limited, 0.30, 3.00)
 ```
+
+No epsilon update for closures, event suppression, or a stock/service-capacity stockout after intent. No learning is applied twice on a retry.
 
 | Variable | Meaning | Value / unit |
 |---|---|---|
-| R, R′ (`relationship_score`) | Relationship score now / next | [0, 1] |
+| `relationship`, `relationship_next` | Relationship score now / next (`relationship_score`) | [0, 1] |
 | `experience_signal` | Experience signal | +1, −1 or 0 |
+| `M_relationship` | Relationship multiplier (`M_rel` in F26) | [0.90, 1.10] |
+| `P_buy_raw` | Final probability before clamping | |
 | `observed_buy` | Observed purchase | 1 bought, 0 rejected |
-| ε, ε′ (`epsilon`) | Price sensitivity now / next | [0.30, 3.00] |
+| `epsilon`, `raw_epsilon_next`, `step_limited`, `epsilon_next` | Price sensitivity now / before limits / after 5% step limit / next | [0.30, 3.00] |
 
 ---
 
@@ -544,10 +561,12 @@ decimals internally and are rounded to cents for display only.
 CPI_yoy_percent  = (CPI_t / CPI_t-12 - 1) * 100
 delta_DFF_pp     = DFF_t - DFF_t-1                                   # percentage points
 macro_daily_bias = clamp(-0.001 * delta_DFF_pp - 0.0005 * (CPI_yoy_percent - 2.0), -0.02, 0.02)
-epsilon          ~ Uniform[-0.0005, 0.0005]    # seeded from (market seed, ticker, tick timestamp), purpose "market-noise"
+epsilon          ~ Uniform[-0.0005, 0.0005]    # from (market_seed, ticker, tick_timestamp), purpose "market-noise"
 tick_return      = clamp(macro_daily_bias / 288 + epsilon, -0.005, 0.005)
-P_n+1            = max($0.01, P_n * (1 + tick_return))
+next_price       = max($0.01, previous_price * (1 + tick_return))
 ```
+
+Stock event multipliers apply after the normal tick update.
 
 Note: in A.6, `epsilon` is the per-tick noise. It is **not** the shopper price-sensitivity `epsilon` from F26/F27.
 
@@ -560,7 +579,8 @@ Note: in A.6, `epsilon` is the per-tick noise. It is **not** the shopper price-s
 | `macro_daily_bias` | Macro daily bias | [−0.02, 0.02] |
 | `epsilon` (A.6) | Per-tick noise | |
 | `tick_return` | Tick return | [−0.005, 0.005] |
-| P_n | Share price after tick n | $, floor $0.01 |
+| `market_seed`, `ticker`, `tick_timestamp` | Inputs to the seeded noise draw | |
+| `previous_price`, `next_price` | Share price before / after the tick | $, floor $0.01; six decimals internally |
 | 288 | Five-minute ticks per day | |
 
 ---
@@ -888,16 +908,19 @@ Every variable that has a spec name, A–Z, with the formula(s) that use it.
 | Spec name | Formula(s) |
 |---|---|
 | `age_days` | M12 |
+| `APR` | F23, F24 |
 | `available_budget` | F19 |
 | `balance_after` | F2 |
 | `balance_before` | F2 |
 | `base_customer_maximum` | F7 |
 | `base_type_cost_ratio` | F15 |
+| `base_unit_cost` | F15 |
 | `break_even_units` | F16 |
 | `business_contribution` | F15 |
 | `business_price_scale` | F7 |
 | `candidates` | F12 |
 | `CITY_RESERVE` | M15 |
+| `COGS` | F15 |
 | `correct_answers` | F8 |
 | `cost_of_debt` | F20 |
 | `CPI_yoy_percent` | A.6 |
@@ -911,9 +934,12 @@ Every variable that has a spec name, A–Z, with the formula(s) that use it.
 | `DeltaDays` | M9 |
 | `demand` | F12 |
 | `effective_turn_number` | F2 |
+| `eligible_bulk_discount` | F15 |
+| `employee_cost` | F15 |
+| `end_of_turn_negative_balance`, `W_end` | F3 |
 | `end_of_turn_wallet_cents` | F4 |
-| `epsilon` (price sensitivity) | F26, F27, M2, M4, M8, M12, M13 |
 | `epsilon` (A.6 per-tick noise) | A.6 |
+| `epsilon` (price sensitivity) | F26, F27, M2, M4, M8, M12, M13 |
 | `estimated_request_cost` | F19 |
 | `eta_epsilon` | M4 |
 | `eta_R` | M4 |
@@ -922,10 +948,12 @@ Every variable that has a spec name, A–Z, with the formula(s) that use it.
 | `experience_signal` | F27 |
 | `F_ref` | M5 |
 | `FEE_OVERDRAFT` | F2 |
+| `final_payment` | F23 |
 | `fixed_costs` | F16 |
 | `fractional_shares` | F9 |
 | `fresh_start_uses_consumed` | F4 |
 | `gross_business_revenue` | F13 |
+| `gross_online_sales` | F15 |
 | `holding_value` | F9 |
 | `inflation_adjusted_unit_cost` | F15 |
 | `initial_funds` | M12 |
@@ -935,33 +963,54 @@ Every variable that has a spec name, A–Z, with the formula(s) that use it.
 | `lambda` | M3, M8 |
 | `last_overdraft_fee_week` | F2 |
 | `loyalty_multiplier` | F7 |
+| `M_relationship` | F27 |
 | `macro_daily_bias` | A.6 |
+| `market_seed`, `ticker`, `tick_timestamp` | A.6 |
+| `monthly_interest` | F23 |
 | `monthly_rate` | F23 |
+| `newly_observed_monthly_CPI_change` | F15 |
 | `notional_cents_exact` | F10 |
 | `observed_buy` | F27 |
-| `P_stock` | F9 |
+| `online_platform_fee` | F15 |
+| `opening_principal`, `closing_principal` | F23 |
 | `p_base` | M5 |
+| `P_buy_raw` | F27 |
+| `P_source` | F26, F27 |
+| `P_stock` | F9 |
 | `paper_account_cash` | F10 |
 | `paper_cash` | F17 |
 | `paper_portfolio_value` | F17 |
+| `pending_crossing_effective_turn` | F2 |
 | `pending_overdraft_crossing` | F2 |
+| `physical_monthly_bill` | F15 |
 | `portfolio_holdings_value` | F17 |
 | `portfolio_value` | F9 |
+| `previous_month_unit_cost`, `current_unit_cost` | F15 |
+| `previous_price`, `next_price` | A.6 |
+| `principal` | F23 |
+| `principal_component` | F23 |
+| `purchase_cost_cents` | F10 |
 | `purchase_intent` | F12 |
 | `question_count` | F8 |
 | `questions_used_today` | F11 |
 | `r_annual` | F3 |
 | `r_week` | F3 |
+| `raw_epsilon_next`, `step_limited`, `epsilon_next` | F27 |
 | `relationship_score` | F26, F27 |
+| `relationship`, `relationship_next` | F27 |
 | `requested_amount` | F24 |
 | `required_correct` | F8 |
+| `restock_cash_debit` | F15 |
+| `restock_order_subtotal` | F15 |
 | `revenue_by_customer_type` | F13 |
+| `sale_proceeds_cents` | F10 |
 | `sales_tax` | F6 |
 | `sales_tax_expense` | F14 |
 | `scheduled_payment` | F23 |
 | `selling_price` | F7 |
 | `selling_price_per_unit` | F13 |
 | `shares_micros` | F10 |
+| `supplier_event_factor` | F15 |
 | `TAX_RATE` | F6 |
 | `taxable_business_sales` | F6 |
 | `taxable_gross_sales` | F14 |
@@ -974,5 +1023,6 @@ Every variable that has a spec name, A–Z, with the formula(s) that use it.
 | `units_ordered` | F15 |
 | `visitor_index` | F12 |
 | `visitors_per_day` | F12 |
-| `W_t` | F1, F3 |
+| `W_t` | F1 |
+| `wallet_after_stock_trade`, `wallet_before_stock_trade` | F10 |
 | `wq` | M1 |
