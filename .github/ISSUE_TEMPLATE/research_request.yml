@@ -1,0 +1,110 @@
+name: Research Request
+description: Ask the Spendly research assistant to investigate a technical question or problem.
+title: "[Research] "
+labels: ["research"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Use this form for technical questions, unfamiliar errors, tool comparisons, or "how should we do X?" ideas.
+        Research results are **recommendations only**. They do not change the project until the feature owner approves them.
+        **Never paste API keys, passwords, tokens, or database URLs into this form.**
+
+  - type: input
+    id: title_short
+    attributes:
+      label: Short title
+      description: One line describing the question.
+      placeholder: "Example: Best way to run integration tests on every pull request"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: category
+    attributes:
+      label: Category
+      options:
+        - Frontend
+        - Backend
+        - 3D Simulation
+        - AI Integration
+        - CI/CD
+        - Testing
+        - Security
+        - Architecture
+        - Other
+    validations:
+      required: true
+
+  - type: dropdown
+    id: affected_owner
+    attributes:
+      label: Whose feature area does this touch?
+      description: The owner reviews any change that comes out of this research. Pick the closest match.
+      options:
+        - Kevin (screens, design system, Learn, AI Coach UI, onboarding)
+        - Ethan (engine, money math, consumer agents, stock-market engine/data, backend, database, APIs, security)
+        - Cheyenne (World Simulation, Stocks display, 3D models, characters, art)
+        - Myles (CI/CD, GitHub Actions, tests coordination, harness files, task board)
+        - Shared / not sure
+    validations:
+      required: true
+
+  - type: textarea
+    id: question
+    attributes:
+      label: Research question
+      description: What do you want investigated?
+    validations:
+      required: true
+
+  - type: textarea
+    id: why
+    attributes:
+      label: What are you working on, and why do you need this?
+      description: Link the task, branch, or PR if there is one.
+    validations:
+      required: true
+
+  - type: textarea
+    id: tried
+    attributes:
+      label: What have you already tried or read?
+      description: Include exact error messages (remove any secrets first).
+    validations:
+      required: false
+
+  - type: textarea
+    id: want
+    attributes:
+      label: What do you want back?
+      description: A comparison, a recommended approach, step-by-step instructions, an explanation of an error, etc.
+    validations:
+      required: false
+
+  - type: input
+    id: spec_ref
+    attributes:
+      label: Related SPEC.md section (if known)
+      description: Helps check the answer against the project requirements.
+    validations:
+      required: false
+
+  - type: dropdown
+    id: priority
+    attributes:
+      label: Priority
+      options:
+        - Normal
+        - Urgent (blocking work)
+      default: 0
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: confirm
+    attributes:
+      label: Before you submit
+      options:
+        - label: I did not include any passwords, API keys, tokens, or database URLs.
+          required: true
