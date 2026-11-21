@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="noindex" />
+    <title>Spendly — world preview (dev only)</title>
+  </head>
+  <!--
+    DEV-ONLY page (PR #25 review agreement with the apps/web owner).
+    Not part of the production build or the public landing page: it exists so
+    the world module can be reviewed before the onboarding screens mount it
+    (Phase 2: Game/Real-life path picker or Lesson 0).
+    Run: cd apps/web && npm run dev -> http://localhost:5173/world-dev.html
+  -->
+  <body>
+    <a class="skip-link" href="#world-dev-root">Skip to preview</a>
+    <header style="padding: 24px; font-family: Inter, system-ui, sans-serif">
+      <p style="margin: 0; color: #596579; font-size: 14px">
+        Dev-only world preview — the public landing page does not load this.
+        <a href="/" style="color: #2563eb">Back to landing page</a>
+      </p>
+    </header>
+    <main id="world-dev-root" style="min-height: 420px"></main>
+    <script type="module" src="/src/world/world-dev.ts"></script>
+  </body>
+</html>
