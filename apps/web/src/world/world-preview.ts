@@ -1,28 +1,63 @@
 /**
  * World preview section, Phase 1 (SPEC.md A.18).
  *
- * Appends the placeholder Game-path stage to the landing page and starts the
- * scene. Kept self-contained: the world module owns its own markup and inline
- * styling until the shared design system grows Game-path tokens, so no file
- * outside the world folder is touched beyond the one-line import in main.ts.
+ * Appends the placeholder Game-path stage and starts the scene. Kept
+ * self-contained: the world module owns its own markup and inline styling
+ * until the shared design system grows Game-path tokens, so no file outside
+ * the world folder is touched beyond the single import in main.ts.
  */
 
 import { renderRealLifeSummaryFallback } from './fallback';
 
 const INLINE = 'box-sizing:border-box;';
 
+//#region Mount policy (PR #25 review agreement)
+
 /**
- * Dev/preview-only mount (PR #25 review agreement): the preview renders only
- * when the page is opened with `?world-preview=1`, so the public landing page
- * stays byte-for-byte unchanged and nothing fetches the three.js chunk
- * without an explicit request. Re-homing behind the real Game-path route is
- * Phase 2 (BU6) work.
+ * The preview mounts only through an explicit visitor action:
+ * - click of the landing-page "See the 3D world" button
+ *   (`#world-preview-button`, added with the apps/web owner's OK — the
+ *   button-review sign-off in the PR is the record), or
+ * - the `?world-preview=1` URL flag for direct links and review.
+ *
+ * Nothing is fetched until a mount actually happens: the landing page stays
+ * byte-for-byte unchanged and the three.js chunk is never downloaded without
+ * it. The real Game-path navigation (Phase 2, BU6) replaces this opt-in.
  */
+
+let mounted = false;
+/** True when the preview was requested through the landing-page button. */
+let mountedByButton = false;
+
+/** Loads the preview when the page carries the `?world-preview=1` flag. */
+function initWorldPreviewFromUrlFlag(): void {
+  if (new URLSearchParams(window.location.search).has('world-preview')) {
+    initWorldPreview();
+  }
+}
+
+/** Loads the preview when the visitor presses the landing-page button. */
+function initWorldPreviewFromButton(): void {
+  const button = document.getElementById('world-preview-button');
+  if (button instanceof HTMLButtonElement) {
+    button.addEventListener('click', () => {
+      button.disabled = true;
+      mountedByButton = true;
+      initWorldPreview();
+    }, { once: true });
+  }
+}
+
+initWorldPreviewFromUrlFlag();
+initWorldPreviewFromButton();
+
+//#endregion
+
 export function initWorldPreview(): void {
-  const requested = new URLSearchParams(window.location.search).has('world-preview');
-  if (!requested) return;
+  if (mounted) return; // Guard against a double mount (button + flag).
   const main = document.querySelector('main');
   if (!main) return; // Not a page with a world stage; nothing to render.
+  mounted = true;
 
   const section = document.createElement('section');
   section.className = 'world-preview';
@@ -68,6 +103,15 @@ export function initWorldPreview(): void {
 
   main.append(section);
 
+  // When triggered by the button, bring the preview into view.
+  if (mountedByButton) {
+    try {
+      section.scrollIntoView({ behavior: 'smooth', block: 'end' });
+    } catch {
+      // scrollIntoView not implemented — the section is on the page anyway.
+    }
+  }
+
   void bootstrapWorldScene(stage);
 }
 
@@ -85,5 +129,3 @@ async function bootstrapWorldScene(stage: HTMLElement): Promise<void> {
     renderRealLifeSummaryFallback(stage, (error as Error)?.message ?? 'world module failed to load');
   }
 }
-
-initWorldPreview();
